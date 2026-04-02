@@ -1,0 +1,22 @@
+﻿services:
+  landslidemonitor:
+    image: landslidemonitor
+    build:
+      context: .
+      dockerfile: LandslideMonitor/Dockerfile
+
+  mqtt:
+    image: eclipse-mosquitto
+    container_name: mqtt
+    ports:
+      - "1883:1883"
+      - "9001:9001"
+
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: sqlserverlandslide
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=Nguyenthanh2k4$
+    ports:
+      - "1433:1433"
