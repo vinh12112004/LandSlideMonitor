@@ -41,24 +41,42 @@ public class MqttService : BackgroundService
                     }
                 );
 
+                if (dto == null || string.IsNullOrEmpty(dto.DeviceId))
+                    return;
+
                 using var scope = _scopeFactory.CreateScope();
                 var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+                var device = await db.Devices.FindAsync(dto.DeviceId);
+                if (device == null)
+                {
+                    Console.WriteLine("Device not found → ignore");
+                    return;
+                }
+
+                //  update device
+                device.Status = DeviceStatus.Online;
+                device.LastSeen = dto.Timestamp;
+                device.LastLatitude = dto.Gps?.Lat;
+                device.LastLongitude = dto.Gps?.Lon;
 
                 var entity = new SensorData
                 {
                     DeviceId = dto.DeviceId,
                     Timestamp = dto.Timestamp,
+
                     SoilMoisture = dto.SoilMoisture,
 
-                    AccelX = dto.Accel.X,
-                    AccelY = dto.Accel.Y,
-                    AccelZ = dto.Accel.Z,
+                    AccelX = dto.Accel?.X ?? 0,
+                    AccelY = dto.Accel?.Y ?? 0,
+                    AccelZ = dto.Accel?.Z ?? 0,
 
-                    Latitude = dto.Gps.Lat,
-                    Longitude = dto.Gps.Lon
+                    Latitude = dto.Gps?.Lat ?? 0,
+                    Longitude = dto.Gps?.Lon ?? 0
                 };
 
                 db.SensorDatas.Add(entity);
+
                 await db.SaveChangesAsync();
             }
             catch (Exception ex)

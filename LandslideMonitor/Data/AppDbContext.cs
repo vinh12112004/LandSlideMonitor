@@ -6,6 +6,7 @@ namespace LandslideMonitor.Data;
 public class AppDbContext : DbContext
 {
     public DbSet<SensorData> SensorDatas { get; set; }
+    public DbSet<Device> Devices { get; set; }
 
     public AppDbContext(DbContextOptions<AppDbContext> options)
         : base(options)
@@ -16,5 +17,8 @@ public class AppDbContext : DbContext
     {
         modelBuilder.Entity<SensorData>()
             .HasKey(x => x.id);
+        modelBuilder.Entity<Device>()
+            .HasKey(d => d.DeviceId);
+    
     }
 }
