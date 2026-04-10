@@ -5,17 +5,8 @@ from datetime import datetime
 import paho.mqtt.client as mqtt
 
 client = mqtt.Client()
-client.connect("192.168.1.101", 1883)
-
-import json
-import time
-import random
-from datetime import datetime
-import paho.mqtt.client as mqtt
-
-client = mqtt.Client()
-client.connect("192.168.1.101", 1883)
-device_id = "ESP32_HN_02"
+client.connect("localhost", 1883)
+device_id = "ESP32_HN_01"
 payload = {
     "deviceId": device_id,
     "timestamp": datetime.utcnow().isoformat(),

@@ -3,7 +3,7 @@ import { NAV_ITEMS } from "../../data/devices";
 // Sidebar — thanh điều hướng bên trái
 export default function Sidebar({ activePath, onNavigate }) {
     return (
-        <aside className="flex flex-col h-full fixed left-0 top-0 h-screen w-64 bg-slate-50 dark:bg-slate-900 text-sm font-medium tracking-tight">
+        <aside className="flex flex-col h-full fixed left-0 top-0 h-screen w-64 bg-slate-50 dark:bg-slate-900 text-sm font-medium tracking-tight border-r border-outline-variant/30">
             <div className="px-6 py-8">
                 {/* Logo */}
                 <div className="flex items-center gap-3 mb-10">

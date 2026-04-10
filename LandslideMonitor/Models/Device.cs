@@ -4,7 +4,8 @@ public enum DeviceStatus
 {
     Offline = 0,
     Online = 1,
-    Warning = 2
+    LowBattery = 2,
+    Maintenance =3,
 }
 
 public class Device

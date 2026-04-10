@@ -2,7 +2,10 @@ using System.Text;
 using System.Text.Json;
 using LandslideMonitor.Data;
 using LandslideMonitor.DTOs;
+using LandslideMonitor.Hubs;
 using LandslideMonitor.Models;
+using LandslideMonitor.Services.Interfaces;
+using Microsoft.AspNetCore.SignalR;
 using MQTTnet;
 using MQTTnet.Client;
 
@@ -11,10 +14,12 @@ namespace LandslideMonitor.Services;
 public class MqttService : BackgroundService
 {
     private readonly IServiceScopeFactory _scopeFactory;
+    private IHubContext<SensorHub> _hub;
 
-    public MqttService(IServiceScopeFactory scopeFactory)
+    public MqttService(IServiceScopeFactory scopeFactory,IHubContext<SensorHub> hub)
     {
         _scopeFactory = scopeFactory;
+        _hub = hub;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -45,39 +50,47 @@ public class MqttService : BackgroundService
                     return;
 
                 using var scope = _scopeFactory.CreateScope();
-                var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-
-                var device = await db.Devices.FindAsync(dto.DeviceId);
+                var deviceService = scope.ServiceProvider.GetRequiredService<IDeviceService>();
+                var sensorService = scope.ServiceProvider.GetRequiredService<ISensorService>();
+                var device = await deviceService.GetByIdAsync(dto.DeviceId);
                 if (device == null)
                 {
                     Console.WriteLine("Device not found → ignore");
                     return;
                 }
-
+                var wasOffline = device.Status == DeviceStatus.Offline;
                 //  update device
-                device.Status = DeviceStatus.Online;
-                device.LastSeen = dto.Timestamp;
-                device.LastLatitude = dto.Gps?.Lat;
-                device.LastLongitude = dto.Gps?.Lon;
-
-                var entity = new SensorData
+                var updatedDevice = await deviceService.UpdateStatusAsync(
+                    dto.DeviceId,
+                    DeviceStatus.Online,
+                    dto.Timestamp,
+                    dto.Gps?.Lat,
+                    dto.Gps?.Lon
+                );
+                
+                if (updatedDevice == null) return;
+                await sensorService.ProcessSensorDataAsync(dto);
+                
+                // signalR
+                await _hub.Clients.Group(dto.DeviceId).SendAsync("ReceiveSensorData", new
                 {
-                    DeviceId = dto.DeviceId,
-                    Timestamp = dto.Timestamp,
-
-                    SoilMoisture = dto.SoilMoisture,
-
-                    AccelX = dto.Accel?.X ?? 0,
-                    AccelY = dto.Accel?.Y ?? 0,
-                    AccelZ = dto.Accel?.Z ?? 0,
-
-                    Latitude = dto.Gps?.Lat ?? 0,
-                    Longitude = dto.Gps?.Lon ?? 0
-                };
-
-                db.SensorDatas.Add(entity);
-
-                await db.SaveChangesAsync();
+                    dto.DeviceId,
+                    dto.Timestamp,
+                    dto.SoilMoisture,
+                    dto.Accel,
+                    dto.Gps
+                });
+                if (wasOffline && updatedDevice.Status == DeviceStatus.Online)
+                {
+                    await _hub.Clients.All.SendAsync("DeviceStatusChanged", new
+                    {
+                        updatedDevice.DeviceId,
+                        updatedDevice.Status,
+                        updatedDevice.LastSeen,
+                        updatedDevice.LastLatitude,
+                        updatedDevice.LastLongitude
+                    });
+                }
             }
             catch (Exception ex)
             {

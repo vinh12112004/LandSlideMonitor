@@ -13,4 +13,12 @@ public class SensorData
 
     public double Latitude { get; set; }
     public double Longitude { get; set; }
+    public DataStatus Status { get; set; }
+}
+public enum DataStatus
+{
+    Normal = 0,
+    Warning = 1,
+    Alert = 2,
+    NoData = 3
 }

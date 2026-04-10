@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Sidebar from "./components/layout/Sidebar";
 import Header from "./components/layout/Header";
 import DevicesPage from "./pages/DevicesPage";
-
+import { initSignalR } from "./services/signalrInit";
 // Placeholder cho các trang chưa xây dựng
 function PlaceholderPage({ title }) {
     return (
@@ -26,6 +26,9 @@ function PlaceholderPage({ title }) {
 export default function App() {
     const [activePath, setActivePath] = useState("/devices");
     const [searchQuery, setSearchQuery] = useState("");
+    useEffect(() => {
+        initSignalR();
+    }, []);
 
     const renderPage = () => {
         switch (activePath) {
@@ -43,11 +46,30 @@ export default function App() {
                 return <DevicesPage searchQuery={searchQuery} />;
         }
     };
-
+    const getPlaceholder = () => {
+        switch (activePath) {
+            case "/devices":
+                return "Search devices by ID or location...";
+            case "/monitoring":
+                return "Search monitoring data...";
+            case "/map":
+                return "Search on map...";
+            case "/alerts":
+                return "Search alerts...";
+            case "/history":
+                return "Search history...";
+            default:
+                return "Search...";
+        }
+    };
     return (
         <div className="bg-surface text-on-surface min-h-screen">
             <Sidebar activePath={activePath} onNavigate={setActivePath} />
-            <Header searchQuery={searchQuery} onSearch={setSearchQuery} />
+            <Header
+                searchQuery={searchQuery}
+                onSearch={setSearchQuery}
+                placeholder={getPlaceholder()}
+            />
             {renderPage()}
         </div>
     );

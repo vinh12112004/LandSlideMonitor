@@ -1,0 +1,31 @@
+using LandslideMonitor.Data;
+using LandslideMonitor.Models;
+using LandslideMonitor.Repositories.Interfaces;
+
+namespace LandslideMonitor.Repositories.Implementations;
+
+using Microsoft.EntityFrameworkCore;
+
+public class SensorRepository : ISensorRepository
+{
+    private readonly AppDbContext _db;
+
+    public SensorRepository(AppDbContext db)
+    {
+        _db = db;
+    }
+
+    public async Task<List<SensorData>> GetLatestAsync(int limit)
+    {
+        return await _db.SensorDatas
+            .OrderByDescending(x => x.Timestamp)
+            .Take(limit)
+            .ToListAsync();
+    }
+
+    public async Task AddAsync(SensorData data)
+    {
+        _db.SensorDatas.Add(data);
+        await _db.SaveChangesAsync();
+    }
+}

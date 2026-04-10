@@ -1,4 +1,5 @@
 using LandslideMonitor.Data;
+using LandslideMonitor.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -8,21 +9,17 @@ namespace LandslideMonitor.Controllers;
 [Route("api/sensor")]
 public class SensorController : ControllerBase
 {
-    private readonly AppDbContext _db;
+    private readonly ISensorService _service;
 
-    public SensorController(AppDbContext db)
+    public SensorController(ISensorService service)
     {
-        _db = db;
+        _service = service;
     }
 
     [HttpGet]
     public async Task<IActionResult> Get()
     {
-        var data = await _db.SensorDatas
-            .OrderByDescending(x => x.Timestamp)
-            .Take(50)
-            .ToListAsync();
-
+        var data = await _service.GetLatestAsync(50);
         return Ok(data);
     }
 }

@@ -1,7 +1,7 @@
 // Header — thanh điều hướng phía trên
-export default function Header({ searchQuery, onSearch }) {
+export default function Header({ searchQuery, onSearch, placeholder }) {
     return (
-        <header className="flex justify-between items-center h-16 px-8 sticky top-0 z-40 w-full ml-64 bg-white/70 dark:bg-slate-950/70 backdrop-blur-xl shadow-sm shadow-blue-900/5">
+        <header className="flex justify-between items-center h-16 px-8 sticky top-0 z-40 w-full ml-64 bg-white/70 dark:bg-slate-950/70 backdrop-blur-xl shadow-sm shadow-blue-900/5 border-b border-outline-variant/30">
             <div className="flex items-center gap-6">
                 {/* <span className="text-xl font-bold tracking-tight text-slate-900 dark:text-white">
                     TerrainWatch
@@ -11,8 +11,8 @@ export default function Header({ searchQuery, onSearch }) {
                         search
                     </span>
                     <input
-                        className="bg-surface-container-low border-none rounded-full py-2 pl-10 pr-4 text-sm w-64 focus:ring-2 focus:ring-primary/20 outline-none"
-                        placeholder="Search sensors..."
+                        className="bg-surface-container-low border-none rounded-full py-2 pl-10 pr-4 text-sm w-80 focus:ring-2 focus:ring-primary/20 outline-none"
+                        placeholder={placeholder || "Search..."}
                         type="text"
                         value={searchQuery}
                         onChange={(e) => onSearch(e.target.value)}

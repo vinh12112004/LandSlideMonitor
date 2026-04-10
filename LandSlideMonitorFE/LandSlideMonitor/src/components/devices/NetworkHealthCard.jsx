@@ -17,14 +17,14 @@ export default function NetworkHealthCard({ devices }) {
                     </span>
                 </div>
                 {/* Progress bar visual */}
-                <div className="mt-8 flex gap-2">
+                <div className="mt-8 flex gap-2 w-full">
                     {devices.map((d, i) => (
                         <div
                             key={i}
                             className={`h-1.5 flex-1 rounded-full ${
-                                d.status === 1 // 1 for Online
-                                    ? "bg-secondary"
-                                    : "bg-tertiary-container"
+                                d.status === 1 // 1 = online
+                                    ? "bg-secondary" // xanh
+                                    : "bg-tertiary-container" // đỏ nhạt
                             }`}
                         />
                     ))}

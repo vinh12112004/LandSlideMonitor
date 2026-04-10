@@ -3,6 +3,7 @@ import NetworkHealthCard from "../components/devices/NetworkHealthCard";
 import DeviceTable from "../components/devices/DeviceTable";
 import MaintenanceInsights from "../components/devices/MaintenanceInsights";
 import deviceService from "../services/deviceService";
+import { getConnection } from "../services/signalr";
 
 export default function DevicesPage({ searchQuery }) {
     const [devices, setDevices] = useState([]);
@@ -16,6 +17,35 @@ export default function DevicesPage({ searchQuery }) {
     // ── Fetch danh sách thiết bị khi mount ──────────────────────────
     useEffect(() => {
         fetchDevices();
+
+        const connection = getConnection();
+        if (!connection) return;
+
+        const handler = (data) => {
+            console.log("SignalR: DeviceStatusChanged", data);
+
+            setDevices((prev) =>
+                prev.map((device) =>
+                    device.deviceId === data.deviceId
+                        ? {
+                              ...device,
+                              status: data.status,
+                              lastSeen: data.lastSeen,
+                              lastLatitude:
+                                  data.lastLatitude ?? device.lastLatitude,
+                              lastLongitude:
+                                  data.lastLongitude ?? device.lastLongitude,
+                          }
+                        : device,
+                ),
+            );
+        };
+
+        connection.on("DeviceStatusChanged", handler);
+
+        return () => {
+            connection.off("DeviceStatusChanged", handler);
+        };
     }, []);
 
     const fetchDevices = async () => {
@@ -195,7 +225,10 @@ export default function DevicesPage({ searchQuery }) {
                             <button
                                 onClick={() => {
                                     setShowAddModal(false);
-                                    setNewDevice({ id: "", location: "" });
+                                    setNewDevice({
+                                        deviceId: "",
+                                        location: "",
+                                    });
                                 }}
                                 disabled={submitting}
                                 className="flex-1 py-3 border border-outline-variant/30 rounded-xl text-sm font-bold text-on-surface-variant hover:bg-surface-container-low transition-colors disabled:opacity-50"

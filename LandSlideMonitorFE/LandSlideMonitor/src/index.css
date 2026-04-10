@@ -1,6 +1,8 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 /* ← Toàn bộ custom theme chuyển vào đây, bỏ tailwind.config.js */
-@theme {
+:root {
     --color-primary: #004ac6;
     --color-primary-container: #2563eb;
     --color-on-primary: #ffffff;
