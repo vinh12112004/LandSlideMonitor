@@ -3,6 +3,7 @@ import Sidebar from "./components/layout/Sidebar";
 import Header from "./components/layout/Header";
 import DevicesPage from "./pages/DevicesPage";
 import { initSignalR } from "./services/signalrInit";
+import HistoryPage from "./pages/HistoryPage";
 // Placeholder cho các trang chưa xây dựng
 function PlaceholderPage({ title }) {
     return (
@@ -41,7 +42,7 @@ export default function App() {
             case "/alerts":
                 return <PlaceholderPage title="Alerts" />;
             case "/history":
-                return <PlaceholderPage title="History" />;
+                return <HistoryPage searchQuery={searchQuery} />;
             default:
                 return <DevicesPage searchQuery={searchQuery} />;
         }
@@ -57,7 +58,7 @@ export default function App() {
             case "/alerts":
                 return "Search alerts...";
             case "/history":
-                return "Search history...";
+                return "Search history by device ID...";
             default:
                 return "Search...";
         }

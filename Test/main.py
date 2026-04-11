@@ -10,7 +10,7 @@ device_id = "ESP32_HN_01"
 payload = {
     "deviceId": device_id,
     "timestamp": datetime.utcnow().isoformat(),
-    "soilMoisture": random.randint(2000, 4000),
+    "soilMoisture": random.randint(0, 100),
     "accel": {
         "x": random.uniform(-1, 1),
         "y": random.uniform(-1, 1),

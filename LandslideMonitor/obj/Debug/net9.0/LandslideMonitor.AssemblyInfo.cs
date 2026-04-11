@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("LandslideMonitor")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+9cbe77d6213054a83a9f1e04811317019d3b82e3")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+85a40a524a01e5a2583fe64f1de514378fb81874")]
 [assembly: System.Reflection.AssemblyProductAttribute("LandslideMonitor")]
 [assembly: System.Reflection.AssemblyTitleAttribute("LandslideMonitor")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

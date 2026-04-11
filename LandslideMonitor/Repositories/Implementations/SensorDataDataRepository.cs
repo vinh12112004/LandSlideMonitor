@@ -6,11 +6,11 @@ namespace LandslideMonitor.Repositories.Implementations;
 
 using Microsoft.EntityFrameworkCore;
 
-public class SensorRepository : ISensorRepository
+public class SensorDataDataRepository : ISensorDataRepository
 {
     private readonly AppDbContext _db;
 
-    public SensorRepository(AppDbContext db)
+    public SensorDataDataRepository(AppDbContext db)
     {
         _db = db;
     }
@@ -27,5 +27,9 @@ public class SensorRepository : ISensorRepository
     {
         _db.SensorDatas.Add(data);
         await _db.SaveChangesAsync();
+    }
+    public IQueryable<SensorData> GetQuery()
+    {
+        return _db.SensorDatas.AsQueryable();
     }
 }

@@ -33,8 +33,8 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddControllers();
 builder.Services.AddSignalR();
 //DL
-builder.Services.AddScoped<ISensorRepository, SensorRepository>();
-builder.Services.AddScoped<ISensorService, SensorService>();
+builder.Services.AddScoped<ISensorDataRepository, SensorDataDataRepository>();
+builder.Services.AddScoped<ISensorDataService, SensorDataService>();
 builder.Services.AddScoped<IDeviceRepository, DeviceRepository>();
 builder.Services.AddScoped<IDeviceService, DeviceService>();
 

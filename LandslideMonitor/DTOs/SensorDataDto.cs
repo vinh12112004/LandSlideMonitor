@@ -1,3 +1,6 @@
+using LandslideMonitor.Helpers;
+using LandslideMonitor.Models;
+
 namespace LandslideMonitor.DTOs;
 
 public class SensorDataDto
@@ -21,4 +24,14 @@ public class GpsDto
 {
     public double Lat { get; set; }
     public double Lon { get; set; }
+}
+public class SensorQueryParams : PaginationParams
+{
+    public String? DeviceId { get; set; }
+
+    public DataStatus? Status { get; set; }
+
+    public DateTime? From { get; set; }
+
+    public DateTime? To { get; set; }
 }

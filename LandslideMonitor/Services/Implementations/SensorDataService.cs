@@ -1,25 +1,27 @@
 using LandslideMonitor.Data;
 using LandslideMonitor.DTOs;
+using LandslideMonitor.Helpers;
 using LandslideMonitor.Models;
 using LandslideMonitor.Repositories.Interfaces;
 using LandslideMonitor.Services.Interfaces;
+using Microsoft.IdentityModel.Tokens;
 
 namespace LandslideMonitor.Services.Implementations;
 
-public class SensorService : ISensorService
+public class SensorDataService : ISensorDataService
 {
-    private readonly ISensorRepository _sensorRepo;
+    private readonly ISensorDataRepository _sensorDataRepo;
     private readonly AppDbContext _db;
 
-    public SensorService(ISensorRepository sensorRepo, AppDbContext db)
+    public SensorDataService(ISensorDataRepository sensorDataRepo, AppDbContext db)
     {
-        _sensorRepo = sensorRepo;
+        _sensorDataRepo = sensorDataRepo;
         _db = db;
     }
 
     public async Task<List<SensorData>> GetLatestAsync(int limit)
     {
-        return await _sensorRepo.GetLatestAsync(limit);
+        return await _sensorDataRepo.GetLatestAsync(limit);
     }
 
     public async Task<SensorData> ProcessSensorDataAsync(SensorDataDto dto)
@@ -47,7 +49,7 @@ public class SensorService : ISensorService
             Status = CalculateStatus(dto)
         };
 
-        await _sensorRepo.AddAsync(entity);
+        await _sensorDataRepo.AddAsync(entity);
 
         return entity;
     }
@@ -61,5 +63,35 @@ public class SensorService : ISensorService
             return DataStatus.Warning;
 
         return DataStatus.Normal;
+    }
+    // public async Task<PagedResult<SensorData>> GetPagedAsync(PaginationParams param)
+    // {
+    //     var query = _sensorDataRepo.GetQuery()
+    //         .OrderByDescending(x => x.Timestamp);
+    //
+    //     return await query.ToPagedResultAsync(param.PageNumber, param.PageSize);
+    // }
+    public async Task<PagedResult<SensorData>> GetPagedAsync(SensorQueryParams param)
+    {
+        var query = _sensorDataRepo.GetQuery();
+
+        if (!param.DeviceId.IsNullOrEmpty())
+            query = query.Where(x =>  x.DeviceId.Contains(param.DeviceId));
+
+        if (param.Status.HasValue)
+            query = query.Where(x => x.Status == param.Status.Value);
+
+        if (param.From.HasValue)
+            query = query.Where(x => x.Timestamp >= param.From.Value);
+
+        if (param.To.HasValue)
+        {
+            var nextDay = param.To.Value.Date.AddDays(1);
+            query = query.Where(x => x.Timestamp < nextDay);
+        }
+
+        query = query.OrderByDescending(x => x.Timestamp);
+
+        return await query.ToPagedResultAsync(param.PageNumber, param.PageSize);
     }
 }
