@@ -48,4 +48,13 @@ public class DeviceController : ControllerBase
 
         return NoContent();
     }
+    [HttpPut("{deviceId}")]
+    public async Task<IActionResult> UpdateDevice(string deviceId, UpdateDeviceDto dto)
+    {
+        var device = await _service.UpdateAsync(deviceId, dto);
+        if (device == null)
+            return NotFound();
+
+        return Ok(device);
+    }
 }

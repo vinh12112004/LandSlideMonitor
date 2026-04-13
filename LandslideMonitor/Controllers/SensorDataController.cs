@@ -23,4 +23,10 @@ public class SensorDataController : ControllerBase
         var result = await _dataService.GetPagedAsync(param);
         return Ok(result);
     }
+    [HttpGet("latest")]
+    public async Task<IActionResult> GetLatestForAllDevices()
+    {
+        var data = await _dataService.GetLatestForAllDevicesAsync();
+        return Ok(data);
+    }
 }

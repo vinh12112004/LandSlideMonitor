@@ -11,6 +11,7 @@ public enum DeviceStatus
 public class Device
 {
     public string DeviceId { get; set; }
+    public string Name { get; set; }
 
     public DeviceStatus Status { get; set; }
     public string Location { get; set; }

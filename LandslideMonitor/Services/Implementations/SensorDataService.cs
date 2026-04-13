@@ -64,13 +64,6 @@ public class SensorDataService : ISensorDataService
 
         return DataStatus.Normal;
     }
-    // public async Task<PagedResult<SensorData>> GetPagedAsync(PaginationParams param)
-    // {
-    //     var query = _sensorDataRepo.GetQuery()
-    //         .OrderByDescending(x => x.Timestamp);
-    //
-    //     return await query.ToPagedResultAsync(param.PageNumber, param.PageSize);
-    // }
     public async Task<PagedResult<SensorData>> GetPagedAsync(SensorQueryParams param)
     {
         var query = _sensorDataRepo.GetQuery();
@@ -93,5 +86,9 @@ public class SensorDataService : ISensorDataService
         query = query.OrderByDescending(x => x.Timestamp);
 
         return await query.ToPagedResultAsync(param.PageNumber, param.PageSize);
+    }
+    public async Task<IEnumerable<SensorData>> GetLatestForAllDevicesAsync()
+    {
+        return await _sensorDataRepo.GetLatestForAllDevicesAsync();
     }
 }

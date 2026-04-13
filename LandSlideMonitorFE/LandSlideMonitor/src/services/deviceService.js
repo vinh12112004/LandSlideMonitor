@@ -12,6 +12,12 @@ const deviceService = {
         return res.data;
     },
 
+    update: async (id, deviceData) => {
+        // deviceData: { name, location, status }
+        const res = await api.put(`/devices/${id}`, deviceData);
+        return res.data;
+    },
+
     delete: async (id) => {
         const res = await api.delete(`/devices/${id}`);
         return res.data;

@@ -21,6 +21,10 @@ const sensordataService = {
 
         return res.data;
     },
+    getLatestForAll: async () => {
+        const res = await api.get("/sensordata/latest");
+        return res.data;
+    },
 };
 
 export default sensordataService;

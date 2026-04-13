@@ -86,4 +86,19 @@ public class DeviceService : IDeviceService
     {
         return await _repo.GetOfflineCandidatesAsync(threshold);
     }
+    public async Task<Device?> UpdateAsync(string deviceId, UpdateDeviceDto dto)
+    {
+        var device = await _repo.GetByIdAsync(deviceId);
+        if (device == null)
+            return null;
+
+        device.Name = dto.Name;
+        device.Location = dto.Location;
+        device.Status = dto.Status;
+
+        await _repo.UpdateAsync(device);
+        await _repo.SaveChangesAsync();
+
+        return device;
+    }
 }

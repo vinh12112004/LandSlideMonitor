@@ -1,10 +1,14 @@
 import { useEffect, useState } from "react";
+import { Routes, Route, useLocation } from "react-router-dom";
+
 import Sidebar from "./components/layout/Sidebar";
 import Header from "./components/layout/Header";
 import DevicesPage from "./pages/DevicesPage";
-import { initSignalR } from "./services/signalrInit";
 import HistoryPage from "./pages/HistoryPage";
-// Placeholder cho các trang chưa xây dựng
+import MapViewPage from "./pages/MapViewPage";
+import { initSignalR } from "./services/signalrInit";
+
+// Placeholder
 function PlaceholderPage({ title }) {
     return (
         <main className="ml-64 p-10 bg-surface min-h-[calc(100vh-64px)] flex items-center justify-center">
@@ -23,32 +27,16 @@ function PlaceholderPage({ title }) {
     );
 }
 
-// App — root component
 export default function App() {
-    const [activePath, setActivePath] = useState("/devices");
+    const location = useLocation();
     const [searchQuery, setSearchQuery] = useState("");
+
     useEffect(() => {
         initSignalR();
     }, []);
 
-    const renderPage = () => {
-        switch (activePath) {
-            case "/devices":
-                return <DevicesPage searchQuery={searchQuery} />;
-            case "/monitoring":
-                return <PlaceholderPage title="Monitoring" />;
-            case "/map":
-                return <PlaceholderPage title="Map View" />;
-            case "/alerts":
-                return <PlaceholderPage title="Alerts" />;
-            case "/history":
-                return <HistoryPage searchQuery={searchQuery} />;
-            default:
-                return <DevicesPage searchQuery={searchQuery} />;
-        }
-    };
     const getPlaceholder = () => {
-        switch (activePath) {
+        switch (location.pathname) {
             case "/devices":
                 return "Search devices by ID or location...";
             case "/monitoring":
@@ -63,15 +51,40 @@ export default function App() {
                 return "Search...";
         }
     };
+
     return (
         <div className="bg-surface text-on-surface min-h-screen">
-            <Sidebar activePath={activePath} onNavigate={setActivePath} />
+            <Sidebar />
             <Header
                 searchQuery={searchQuery}
                 onSearch={setSearchQuery}
                 placeholder={getPlaceholder()}
             />
-            {renderPage()}
+
+            <Routes>
+                <Route
+                    path="/monitoring"
+                    element={<PlaceholderPage title="Monitoring" />}
+                />
+                <Route path="/map" element={<MapViewPage />} />
+                <Route
+                    path="/alerts"
+                    element={<PlaceholderPage title="Alerts" />}
+                />
+                <Route
+                    path="/history"
+                    element={<HistoryPage searchQuery={searchQuery} />}
+                />
+                <Route
+                    path="/devices"
+                    element={<DevicesPage searchQuery={searchQuery} />}
+                />
+                {/* default */}
+                <Route
+                    path="*"
+                    element={<PlaceholderPage searchQuery={searchQuery} />}
+                />
+            </Routes>
         </div>
     );
 }

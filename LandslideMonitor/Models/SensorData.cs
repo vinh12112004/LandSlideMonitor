@@ -20,5 +20,4 @@ public enum DataStatus
     Normal = 0,
     Warning = 1,
     Alert = 2,
-    NoData = 3
 }

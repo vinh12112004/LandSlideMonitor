@@ -32,4 +32,13 @@ public class SensorDataDataRepository : ISensorDataRepository
     {
         return _db.SensorDatas.AsQueryable();
     }
+
+    public async Task<IEnumerable<SensorData>> GetLatestForAllDevicesAsync()
+    {
+        return await _db.SensorDatas
+            .Where(s => s.Timestamp == _db.SensorDatas
+                .Where(x => x.DeviceId == s.DeviceId)
+                .Max(x => x.Timestamp))
+            .ToListAsync();
+    }
 }

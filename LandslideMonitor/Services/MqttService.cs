@@ -69,16 +69,20 @@ public class MqttService : BackgroundService
                 );
                 
                 if (updatedDevice == null) return;
-                await sensorService.ProcessSensorDataAsync(dto);
-                
-                // signalR
-                await _hub.Clients.Group(dto.DeviceId).SendAsync("ReceiveSensorData", new
+                var saved = await sensorService.ProcessSensorDataAsync(dto);
+
+                await _hub.Clients.All.SendAsync("ReceiveSensorData", new
                 {
-                    dto.DeviceId,
-                    dto.Timestamp,
-                    dto.SoilMoisture,
-                    dto.Accel,
-                    dto.Gps
+                    id = saved.id,
+                    deviceId = saved.DeviceId,
+                    timestamp = saved.Timestamp,
+                    soilMoisture = saved.SoilMoisture,
+                    accelX = saved.AccelX,
+                    accelY = saved.AccelY,
+                    accelZ = saved.AccelZ,
+                    latitude = saved.Latitude,
+                    longitude = saved.Longitude,
+                    status = saved.Status
                 });
                 if (wasOffline && updatedDevice.Status == DeviceStatus.Online)
                 {

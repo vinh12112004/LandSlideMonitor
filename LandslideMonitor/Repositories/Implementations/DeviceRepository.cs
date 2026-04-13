@@ -30,6 +30,12 @@ public class DeviceRepository : IDeviceRepository
         await _db.Devices.AddAsync(device);
     }
 
+    public Task UpdateAsync(Device device)
+    {
+        _db.Devices.Update(device);
+        return Task.CompletedTask;
+    }
+
     public async Task DeleteAsync(Device device)
     {
         _db.Devices.Remove(device);
@@ -43,7 +49,7 @@ public class DeviceRepository : IDeviceRepository
     public async Task<List<Device>> GetOfflineCandidatesAsync(DateTime threshold)
     {
         return await _db.Devices
-            .Where(d => d.LastSeen < threshold && d.Status != DeviceStatus.Offline)
+            .Where(d => d.LastSeen < threshold && d.Status != DeviceStatus.Offline && d.Status !=DeviceStatus.Maintenance)
             .ToListAsync();
     }
 }

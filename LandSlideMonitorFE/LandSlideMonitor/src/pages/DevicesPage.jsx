@@ -4,13 +4,14 @@ import DeviceTable from "../components/devices/DeviceTable";
 import MaintenanceInsights from "../components/devices/MaintenanceInsights";
 import deviceService from "../services/deviceService";
 import { getConnection } from "../services/signalr";
+import AddEditDeviceModal from "../components/devices/AddEditDeviceModal";
 
 export default function DevicesPage({ searchQuery }) {
     const [devices, setDevices] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [showAddModal, setShowAddModal] = useState(false);
-    const [newDevice, setNewDevice] = useState({ deviceId: "", location: "" });
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [editingDevice, setEditingDevice] = useState(null); // null for Add, object for Edit
     const [submitting, setSubmitting] = useState(false);
     const [deletingId, setDeletingId] = useState(null);
 
@@ -62,6 +63,22 @@ export default function DevicesPage({ searchQuery }) {
         }
     };
 
+    // ── Mở modal ───────────────────────────────────────────────────
+    const handleOpenAddModal = () => {
+        setEditingDevice(null);
+        setIsModalOpen(true);
+    };
+
+    const handleOpenEditModal = (device) => {
+        setEditingDevice(device);
+        setIsModalOpen(true);
+    };
+
+    const handleCloseModal = () => {
+        setIsModalOpen(false);
+        setEditingDevice(null);
+    };
+
     // ── Xóa thiết bị ────────────────────────────────────────────────
     const handleDelete = async (id) => {
         if (!confirm(`Xóa thiết bị ${id}?`)) return;
@@ -77,20 +94,29 @@ export default function DevicesPage({ searchQuery }) {
         }
     };
 
-    // ── Thêm thiết bị mới ───────────────────────────────────────────
-    const handleAddDevice = async () => {
-        if (!newDevice.deviceId.trim() || !newDevice.location.trim()) return;
+    // ── Thêm/Sửa thiết bị ───────────────────────────────────────────
+    const handleSaveDevice = async (deviceData) => {
         try {
             setSubmitting(true);
-            const created = await deviceService.create({
-                deviceId: newDevice.deviceId.trim(),
-                location: newDevice.location.trim(),
-            });
-            setDevices((prev) => [...prev, created]);
-            setNewDevice({ deviceId: "", location: "" });
-            setShowAddModal(false);
+            if (editingDevice) {
+                // Update
+                const updated = await deviceService.update(
+                    editingDevice.deviceId,
+                    deviceData,
+                );
+                setDevices((prev) =>
+                    prev.map((d) =>
+                        d.deviceId === editingDevice.deviceId ? updated : d,
+                    ),
+                );
+            } else {
+                // Create
+                const created = await deviceService.create(deviceData);
+                setDevices((prev) => [...prev, created]);
+            }
+            handleCloseModal();
         } catch (err) {
-            alert("Thêm thiết bị thất bại. Vui lòng thử lại.");
+            alert("Lưu thất bại. Vui lòng thử lại.");
             console.error(err);
         } finally {
             setSubmitting(false);
@@ -101,7 +127,8 @@ export default function DevicesPage({ searchQuery }) {
     const filtered = devices.filter(
         (d) =>
             d.deviceId.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            d.location.toLowerCase().includes(searchQuery.toLowerCase()),
+            d.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            d.name.toLowerCase().includes(searchQuery.toLowerCase()),
     );
 
     // ── Loading state ────────────────────────────────────────────────
@@ -154,12 +181,12 @@ export default function DevicesPage({ searchQuery }) {
                         Device Management
                     </h2>
                     <p className="text-on-surface-variant font-body">
-                        Manage and monitor the health of your ESP32 seismic
-                        sensor network.
+                        Manage and monitor the health of your seismic sensor
+                        network.
                     </p>
                 </div>
                 <button
-                    onClick={() => setShowAddModal(true)}
+                    onClick={handleOpenAddModal}
                     className="flex items-center gap-2 px-6 py-3.5 bg-gradient-to-br from-primary to-primary-container text-white rounded-full font-bold shadow-lg shadow-primary/20 hover:shadow-xl hover:-translate-y-0.5 transition-all"
                 >
                     <span className="material-symbols-outlined">add</span>
@@ -167,97 +194,26 @@ export default function DevicesPage({ searchQuery }) {
                 </button>
             </div>
 
-            {/* Bento Grid */}
-            <div className="grid grid-cols-12 gap-6">
+            {/* Main Content Area */}
+            <div className="flex flex-col gap-6">
                 <NetworkHealthCard devices={devices} />
                 <DeviceTable
                     devices={filtered}
                     onDelete={handleDelete}
+                    onEdit={handleOpenEditModal}
                     deletingId={deletingId}
                 />
-                {/* <MaintenanceInsights /> */}
             </div>
 
-            {/* Add Device Modal */}
-            {showAddModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm">
-                    <div className="bg-white rounded-3xl p-8 w-full max-w-md shadow-2xl">
-                        <h3 className="text-xl font-extrabold text-on-surface mb-6">
-                            Add New Device
-                        </h3>
-                        <div className="space-y-4">
-                            <div>
-                                <label className="text-xs font-bold text-on-surface-variant uppercase tracking-wider block mb-1">
-                                    Device ID
-                                </label>
-                                <input
-                                    type="text"
-                                    placeholder="ESP32-S3-V1-001"
-                                    value={newDevice.deviceId}
-                                    onChange={(e) =>
-                                        setNewDevice((p) => ({
-                                            ...p,
-                                            deviceId: e.target.value,
-                                        }))
-                                    }
-                                    className="w-full border border-outline-variant/40 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-                                />
-                            </div>
-                            <div>
-                                <label className="text-xs font-bold text-on-surface-variant uppercase tracking-wider block mb-1">
-                                    Location
-                                </label>
-                                <input
-                                    type="text"
-                                    placeholder="North Ridge / Section C"
-                                    value={newDevice.location}
-                                    onChange={(e) =>
-                                        setNewDevice((p) => ({
-                                            ...p,
-                                            location: e.target.value,
-                                        }))
-                                    }
-                                    className="w-full border border-outline-variant/40 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-                                />
-                            </div>
-                        </div>
-                        <div className="flex gap-3 mt-8">
-                            <button
-                                onClick={() => {
-                                    setShowAddModal(false);
-                                    setNewDevice({
-                                        deviceId: "",
-                                        location: "",
-                                    });
-                                }}
-                                disabled={submitting}
-                                className="flex-1 py-3 border border-outline-variant/30 rounded-xl text-sm font-bold text-on-surface-variant hover:bg-surface-container-low transition-colors disabled:opacity-50"
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                onClick={handleAddDevice}
-                                disabled={
-                                    submitting ||
-                                    !newDevice.deviceId.trim() ||
-                                    !newDevice.location.trim()
-                                }
-                                className="flex-1 py-3 bg-primary text-white rounded-xl text-sm font-bold hover:bg-primary/90 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
-                            >
-                                {submitting ? (
-                                    <>
-                                        <span className="material-symbols-outlined text-sm animate-spin">
-                                            progress_activity
-                                        </span>
-                                        Đang lưu...
-                                    </>
-                                ) : (
-                                    "Add Device"
-                                )}
-                            </button>
-                        </div>
-                    </div>
-                </div>
+            {/* Add/Edit Device Modal */}
+            {isModalOpen && (
+                <AddEditDeviceModal
+                    key={editingDevice?.deviceId || "new"}
+                    device={editingDevice}
+                    onClose={handleCloseModal}
+                    onSave={handleSaveDevice}
+                    submitting={submitting}
+                />
             )}
         </main>
     );
