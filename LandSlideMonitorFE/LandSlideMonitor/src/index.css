@@ -85,3 +85,18 @@ h3 {
         "opsz" 24;
     vertical-align: middle;
 }
+/* ===== BACKGROUND ===== */
+.sentient-gradient {
+    background: radial-gradient(
+        circle at 0% 0%,
+        #eff4ff 0%,
+        #f8f9ff 50%,
+        #d3e4fe 100%
+    );
+}
+
+.ambient-shadow {
+    box-shadow:
+        0 10px 30px rgba(0, 0, 0, 0.08),
+        0 20px 60px rgba(0, 0, 0, 0.06);
+}

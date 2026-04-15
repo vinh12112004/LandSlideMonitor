@@ -4,8 +4,8 @@
     <head>
         <meta charset="utf-8" />
         <meta content="width=device-width, initial-scale=1.0" name="viewport" />
-        <title>TerrainWatch - Data History</title>
-        <!-- Fonts -->
+        <title>Login | GeoSense IoT</title>
+        <!-- Google Fonts -->
         <link href="https://fonts.googleapis.com" rel="preconnect" />
         <link
             crossorigin=""
@@ -13,7 +13,7 @@
             rel="preconnect"
         />
         <link
-            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Manrope:wght@600;700;800&amp;display=swap"
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Manrope:wght@700;800&amp;display=swap"
             rel="stylesheet"
         />
         <!-- Material Symbols -->
@@ -25,7 +25,7 @@
             href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
             rel="stylesheet"
         />
-        <!-- Tailwind -->
+        <!-- Tailwind CSS -->
         <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
         <script id="tailwind-config">
             tailwind.config = {
@@ -33,53 +33,53 @@
                 theme: {
                     extend: {
                         colors: {
+                            "tertiary-fixed-dim": "#ffb3ad",
+                            "on-error-container": "#93000a",
                             outline: "#737686",
-                            "surface-tint": "#0053db",
-                            "on-primary-fixed": "#00174b",
-                            "outline-variant": "#c3c6d7",
-                            "on-background": "#0b1c30",
+                            "inverse-primary": "#b4c5ff",
                             "secondary-container": "#6cf8bb",
                             "surface-container-low": "#eff4ff",
+                            "tertiary-fixed": "#ffdad7",
                             "on-secondary-fixed-variant": "#005236",
-                            error: "#ba1a1a",
-                            "error-container": "#ffdad6",
-                            "surface-bright": "#f8f9ff",
-                            "on-error-container": "#93000a",
-                            "on-surface": "#0b1c30",
-                            "tertiary-fixed-dim": "#ffb3ad",
                             "surface-dim": "#cbdbf5",
-                            "primary-fixed": "#dbe1ff",
+                            "surface-bright": "#f8f9ff",
+                            "on-surface-variant": "#434655",
+                            "surface-container": "#e5eeff",
+                            "surface-container-high": "#dce9ff",
+                            "surface-container-highest": "#d3e4fe",
                             "on-tertiary": "#ffffff",
-                            "secondary-fixed-dim": "#4edea3",
-                            "primary-fixed-dim": "#b4c5ff",
-                            "on-secondary-fixed": "#002113",
-                            "secondary-fixed": "#6ffbbe",
-                            "on-primary-fixed-variant": "#003ea8",
-                            "on-secondary-container": "#00714d",
-                            tertiary: "#ab0b1c",
                             "on-primary": "#ffffff",
                             "on-tertiary-fixed-variant": "#930013",
-                            secondary: "#006c49",
-                            "on-surface-variant": "#434655",
-                            surface: "#f8f9ff",
-                            "surface-container-lowest": "#ffffff",
-                            background: "#f8f9ff",
-                            "inverse-on-surface": "#eaf1ff",
-                            "inverse-surface": "#213145",
-                            "surface-container-highest": "#d3e4fe",
-                            "tertiary-container": "#cf2c30",
-                            "tertiary-fixed": "#ffdad7",
-                            "inverse-primary": "#b4c5ff",
-                            "on-secondary": "#ffffff",
-                            "on-tertiary-fixed": "#410004",
-                            "on-primary-container": "#eeefff",
+                            "error-container": "#ffdad6",
+                            "primary-fixed": "#dbe1ff",
+                            "outline-variant": "#c3c6d7",
+                            "surface-tint": "#0053db",
+                            "on-secondary-container": "#00714d",
+                            "primary-fixed-dim": "#b4c5ff",
                             primary: "#004ac6",
-                            "surface-container": "#e5eeff",
-                            "primary-container": "#2563eb",
-                            "surface-container-high": "#dce9ff",
-                            "on-tertiary-container": "#ffecea",
-                            "on-error": "#ffffff",
+                            "on-primary-container": "#eeefff",
+                            "secondary-fixed": "#6ffbbe",
+                            "on-tertiary-fixed": "#410004",
+                            "on-background": "#0b1c30",
+                            "on-secondary": "#ffffff",
+                            error: "#ba1a1a",
+                            "surface-container-lowest": "#ffffff",
+                            surface: "#f8f9ff",
                             "surface-variant": "#d3e4fe",
+                            "on-tertiary-container": "#ffecea",
+                            "on-primary-fixed-variant": "#003ea8",
+                            "secondary-fixed-dim": "#4edea3",
+                            secondary: "#006c49",
+                            "on-secondary-fixed": "#002113",
+                            background: "#f8f9ff",
+                            "tertiary-container": "#cf2c30",
+                            tertiary: "#ab0b1c",
+                            "on-primary-fixed": "#00174b",
+                            "primary-container": "#2563eb",
+                            "on-error": "#ffffff",
+                            "inverse-surface": "#213145",
+                            "on-surface": "#0b1c30",
+                            "inverse-on-surface": "#eaf1ff",
                         },
                         borderRadius: {
                             DEFAULT: "0.25rem",
@@ -104,762 +104,211 @@
                     "GRAD" 0,
                     "opsz" 24;
             }
-            body {
-                font-family: "Inter", sans-serif;
+            .sentient-gradient {
+                background: radial-gradient(
+                    circle at 0% 0%,
+                    #eff4ff 0%,
+                    #f8f9ff 50%,
+                    #d3e4fe 100%
+                );
             }
-            h1,
-            h2,
-            h3,
-            .brand-font {
-                font-family: "Manrope", sans-serif;
+            .ambient-shadow {
+                box-shadow: 0px 20px 40px rgba(11, 28, 48, 0.06);
             }
         </style>
     </head>
-    <body class="bg-surface text-on-surface min-h-screen">
-        <!-- SideNavBar -->
-        <aside
-            class="flex flex-col h-full fixed left-0 top-0 h-screen w-64 bg-slate-50 dark:bg-slate-900 font-manrope text-sm font-medium tracking-tight"
-        >
-            <div class="p-6 flex flex-col h-full">
-                <div class="mb-8">
-                    <span
-                        class="font-manrope font-extrabold text-blue-600 tracking-tighter text-2xl"
-                        >Digital Geologist</span
+    <body
+        class="bg-surface font-body text-on-surface min-h-screen flex flex-col sentient-gradient"
+    >
+        <!-- Main Content Canvas -->
+        <main class="flex-grow flex items-center justify-center p-6 sm:p-12">
+            <!-- Auth Card -->
+            <div
+                class="w-full max-w-md bg-surface-container-lowest rounded-xl p-8 sm:p-10 ambient-shadow"
+            >
+                <!-- Brand & Header -->
+                <div class="flex flex-col items-center mb-10 text-center">
+                    <div class="mb-4 text-primary">
+                        <span
+                            class="material-symbols-outlined text-5xl"
+                            style="font-variation-settings: &quot;FILL&quot; 1"
+                            >landscape</span
+                        >
+                    </div>
+                    <h1
+                        class="font-headline font-extrabold text-2xl text-on-surface tracking-tighter mb-2"
                     >
+                        GeoSense IoT
+                    </h1>
                     <p
-                        class="text-[10px] text-on-surface-variant tracking-widest uppercase mt-1"
+                        class="text-on-surface-variant font-label text-sm uppercase tracking-widest font-medium"
                     >
-                        Landslide Monitoring
+                        Landslide Monitoring System
                     </p>
                 </div>
-                <nav class="flex-1 space-y-1">
-                    <a
-                        class="flex items-center px-4 py-3 text-slate-500 dark:text-slate-400 hover:bg-slate-200/50 dark:hover:bg-slate-800 transition-colors rounded-xl group"
-                        href="#"
-                    >
-                        <span class="material-symbols-outlined mr-3"
-                            >dashboard</span
-                        >
-                        Monitoring
-                    </a>
-                    <a
-                        class="flex items-center px-4 py-3 text-slate-500 dark:text-slate-400 hover:bg-slate-200/50 dark:hover:bg-slate-800 transition-colors rounded-xl group"
-                        href="#"
-                    >
-                        <span class="material-symbols-outlined mr-3">map</span>
-                        Map View
-                    </a>
-                    <a
-                        class="flex items-center px-4 py-3 text-slate-500 dark:text-slate-400 hover:bg-slate-200/50 dark:hover:bg-slate-800 transition-colors rounded-xl group"
-                        href="#"
-                    >
-                        <span class="material-symbols-outlined mr-3"
-                            >notifications_active</span
-                        >
-                        Alerts
-                    </a>
-                    <a
-                        class="flex items-center px-4 py-3 text-blue-700 dark:text-blue-300 font-bold border-r-2 border-blue-600 bg-slate-100 dark:bg-slate-800/50 rounded-xl group"
-                        href="#"
-                    >
-                        <span class="material-symbols-outlined mr-3"
-                            >history</span
-                        >
-                        History
-                    </a>
-                    <a
-                        class="flex items-center px-4 py-3 text-slate-500 dark:text-slate-400 hover:bg-slate-200/50 dark:hover:bg-slate-800 transition-colors rounded-xl group"
-                        href="#"
-                    >
-                        <span class="material-symbols-outlined mr-3"
-                            >settings_remote</span
-                        >
-                        Devices
-                    </a>
-                </nav>
+                <!-- Error State (Subtle Tonal Alert) -->
                 <div
-                    class="mt-auto pt-6 border-t border-slate-200 dark:border-slate-800"
+                    class="mb-6 bg-error-container/20 border border-error/10 rounded-lg p-3 flex items-center gap-3"
                 >
+                    <span class="material-symbols-outlined text-error text-lg"
+                        >error</span
+                    >
+                    <p class="text-on-error-container text-xs font-medium">
+                        Invalid credentials. Please verify your ID and password.
+                    </p>
+                </div>
+                <!-- Login Form -->
+                <form class="space-y-6">
+                    <!-- Input Group: ID -->
+                    <div class="space-y-2">
+                        <label
+                            class="block text-xs font-semibold text-on-surface-variant ml-1 font-label"
+                            for="identity"
+                        >
+                            Email or Device ID
+                        </label>
+                        <div class="relative">
+                            <span
+                                class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline text-lg"
+                                >id_card</span
+                            >
+                            <input
+                                class="w-full pl-12 pr-4 py-3.5 bg-surface-container-highest/50 border-none rounded-xl focus:ring-2 focus:ring-primary/30 focus:bg-surface-container-lowest transition-all text-sm outline-none placeholder:text-outline/60"
+                                id="identity"
+                                placeholder="Enter your credentials"
+                                type="text"
+                            />
+                        </div>
+                    </div>
+                    <!-- Input Group: Password -->
+                    <div class="space-y-2">
+                        <div class="flex justify-between items-end px-1">
+                            <label
+                                class="block text-xs font-semibold text-on-surface-variant font-label"
+                                for="password"
+                            >
+                                Password
+                            </label>
+                            <a
+                                class="text-xs font-semibold text-primary hover:text-on-primary-fixed-variant transition-colors"
+                                href="#"
+                                >Forgot password?</a
+                            >
+                        </div>
+                        <div class="relative">
+                            <span
+                                class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline text-lg"
+                                >lock</span
+                            >
+                            <input
+                                class="w-full pl-12 pr-4 py-3.5 bg-surface-container-highest/50 border-none rounded-xl focus:ring-2 focus:ring-primary/30 focus:bg-surface-container-lowest transition-all text-sm outline-none placeholder:text-outline/60"
+                                id="password"
+                                placeholder="••••••••"
+                                type="password"
+                            />
+                        </div>
+                    </div>
+                    <!-- Remember Me -->
+                    <div class="flex items-center gap-3 px-1">
+                        <div class="relative flex items-center">
+                            <input
+                                class="w-5 h-5 rounded border-outline-variant text-primary focus:ring-primary/20 bg-surface-container-highest/50 cursor-pointer"
+                                id="remember"
+                                type="checkbox"
+                            />
+                        </div>
+                        <label
+                            class="text-sm text-on-surface-variant cursor-pointer select-none"
+                            for="remember"
+                            >Remember this device</label
+                        >
+                    </div>
+                    <!-- Primary Action (Loading State) -->
                     <button
-                        class="w-full bg-primary-container text-on-primary-container py-3 px-4 rounded-xl font-bold flex items-center justify-center gap-2 hover:opacity-90 transition-all active:scale-95"
+                        class="w-full bg-gradient-to-br from-primary to-primary-container text-on-primary py-4 rounded-xl font-semibold shadow-lg hover:shadow-primary/20 active:scale-[0.98] transition-all flex items-center justify-center gap-3"
+                        type="submit"
                     >
-                        <span class="material-symbols-outlined text-sm"
-                            >download</span
+                        <!-- Loading Spinner SVG -->
+                        <svg
+                            class="animate-spin h-5 w-5 text-on-primary"
+                            fill="none"
+                            viewbox="0 0 24 24"
+                            xmlns="http://www.w3.org/2000/svg"
                         >
-                        Export Report
+                            <circle
+                                class="opacity-25"
+                                cx="12"
+                                cy="12"
+                                r="10"
+                                stroke="currentColor"
+                                stroke-width="4"
+                            ></circle>
+                            <path
+                                class="opacity-75"
+                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                fill="currentColor"
+                            ></path>
+                        </svg>
+                        <span>Login</span>
                     </button>
-                    <div class="mt-6 flex items-center gap-3 px-2">
-                        <img
-                            alt="User profile"
-                            class="w-10 h-10 rounded-full bg-slate-200"
-                            data-alt="close up professional male portrait with minimal background soft studio lighting clean aesthetic"
-                            src="https://lh3.googleusercontent.com/aida-public/AB6AXuDwtS4HlR5qxuNFuKyJSyr0S8E3pJgwpPaH1DX_EzzgUzkTPLCeqAY3K-LASsOuO7qqTVYPiCzcffFAS-habFGfWlgz9cnW0mZPmqZe-INGQMkiT88akoamHT_e_HMPmAHQMIHHc_8kIF2TdnLzFf8miIfgi7dWPsvQIHWikVePSxzgg_Ieqbt9B7y6H0Q3w9sUUgvX7nTyXAU1OhblYXndo6F89MmSRGdjiESaRBqMole4nb5JUrHg-wj-46L8XOl_ZkqAFs6z4ELz"
-                        />
-                        <div class="overflow-hidden">
-                            <p
-                                class="text-xs font-bold truncate text-on-surface"
-                            >
-                                Admin User
-                            </p>
-                            <p
-                                class="text-[10px] text-on-surface-variant truncate"
-                            >
-                                Lead Hydrologist
-                            </p>
-                        </div>
-                    </div>
+                </form>
+                <!-- Secondary Action -->
+                <div class="mt-8 text-center">
+                    <p class="text-sm text-on-surface-variant">
+                        Don't have an account?
+                        <a
+                            class="text-primary font-bold hover:underline underline-offset-4 decoration-primary/30"
+                            href="#"
+                            >Register</a
+                        >
+                    </p>
                 </div>
             </div>
-        </aside>
-        <!-- TopNavBar -->
-        <header
-            class="flex justify-between items-center h-16 px-8 sticky top-0 z-40 w-full ml-64 bg-white/70 dark:bg-slate-950/70 backdrop-blur-xl shadow-sm shadow-blue-900/5"
-        >
-            <div class="flex items-center gap-6 flex-1">
-                <span
-                    class="text-xl font-bold tracking-tight text-slate-900 dark:text-white font-manrope"
-                    >TerrainWatch</span
-                >
-                <div class="relative w-96 max-w-md">
-                    <span
-                        class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-lg"
-                        >search</span
-                    >
-                    <input
-                        class="w-full pl-10 pr-4 py-2 bg-surface-container-highest/50 border-none rounded-full text-sm focus:ring-2 focus:ring-primary/20 transition-all"
-                        placeholder="Search device ID or location..."
-                        type="text"
-                    />
-                </div>
-            </div>
-            <div class="flex items-center gap-4">
-                <button
-                    class="p-2 text-slate-500 hover:text-blue-500 transition-colors active:scale-95 duration-150"
-                >
-                    <span class="material-symbols-outlined">notifications</span>
-                </button>
-                <button
-                    class="p-2 text-slate-500 hover:text-blue-500 transition-colors active:scale-95 duration-150"
-                >
-                    <span class="material-symbols-outlined"
-                        >account_circle</span
-                    >
-                </button>
-            </div>
-        </header>
-        <!-- Main Content -->
-        <main class="ml-64 p-8">
-            <div class="max-w-7xl mx-auto space-y-8">
-                <!-- Page Header -->
-                <div
-                    class="flex flex-col md:flex-row md:items-end justify-between gap-4"
-                >
-                    <div>
-                        <h1
-                            class="text-4xl font-extrabold tracking-tight text-on-surface mb-2 font-headline"
-                        >
-                            Data History
-                        </h1>
-                        <p class="text-on-surface-variant max-w-2xl font-body">
-                            Complete chronological telemetry log from the
-                            landslide sensor network. Filter by date range or
-                            specific device clusters to analyze earth movement
-                            patterns.
-                        </p>
-                    </div>
-                    <div class="flex items-center gap-3">
-                        <div
-                            class="flex bg-surface-container-low p-1 rounded-xl"
-                        >
-                            <button
-                                class="px-4 py-2 text-sm font-semibold text-primary bg-surface-container-lowest rounded-lg shadow-sm"
-                            >
-                                Real-time
-                            </button>
-                            <button
-                                class="px-4 py-2 text-sm font-medium text-on-surface-variant hover:text-on-surface"
-                            >
-                                Archived
-                            </button>
-                        </div>
-                    </div>
-                </div>
-                <!-- Table Controls -->
-                <div
-                    class="bg-surface-container-low rounded-2xl p-4 flex flex-wrap items-center gap-4"
-                >
-                    <div class="flex flex-1 items-center gap-3">
-                        <div
-                            class="flex items-center gap-2 bg-surface-container-lowest px-3 py-2 rounded-xl border border-outline-variant/15"
-                        >
-                            <span
-                                class="material-symbols-outlined text-outline text-sm"
-                                >calendar_today</span
-                            >
-                            <input
-                                class="border-none bg-transparent text-xs font-medium focus:ring-0 p-0"
-                                type="date"
-                                value="2023-11-01"
-                            />
-                            <span class="text-outline text-xs">to</span>
-                            <input
-                                class="border-none bg-transparent text-xs font-medium focus:ring-0 p-0"
-                                type="date"
-                                value="2023-11-07"
-                            />
-                        </div>
-                        <div
-                            class="flex items-center gap-2 bg-surface-container-lowest px-3 py-2 rounded-xl border border-outline-variant/15"
-                        >
-                            <span
-                                class="material-symbols-outlined text-outline text-sm"
-                                >filter_list</span
-                            >
-                            <select
-                                class="border-none bg-transparent text-xs font-medium focus:ring-0 p-0 pr-6"
-                            >
-                                <option>All Devices</option>
-                                <option>Cluster Alpha</option>
-                                <option>Cluster Beta</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <button
-                            class="flex items-center gap-2 px-4 py-2 text-xs font-bold text-on-surface bg-surface-container-lowest border border-outline-variant/15 rounded-xl hover:bg-surface-container transition-colors"
-                        >
-                            <span class="material-symbols-outlined text-sm"
-                                >tune</span
-                            >
-                            Columns
-                        </button>
-                        <button
-                            class="flex items-center gap-2 px-4 py-2 text-xs font-bold text-on-primary bg-primary rounded-xl hover:opacity-90 transition-all active:scale-95 shadow-lg shadow-primary/10"
-                        >
-                            <span class="material-symbols-outlined text-sm"
-                                >download</span
-                            >
-                            Export CSV
-                        </button>
-                    </div>
-                </div>
-                <!-- Data Table Module -->
-                <div
-                    class="bg-surface-container-lowest rounded-3xl overflow-hidden shadow-sm border border-outline-variant/10"
-                >
-                    <table class="w-full text-left border-collapse">
-                        <thead
-                            class="bg-surface-container-low/50 border-b border-outline-variant/15"
-                        >
-                            <tr>
-                                <th
-                                    class="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant"
-                                >
-                                    Timestamp
-                                </th>
-                                <th
-                                    class="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant"
-                                >
-                                    Device ID
-                                </th>
-                                <th
-                                    class="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant text-center"
-                                >
-                                    Status
-                                </th>
-                                <th
-                                    class="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant"
-                                >
-                                    Moisture (%)
-                                </th>
-                                <th
-                                    class="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant"
-                                >
-                                    Acc (X, Y, Z)
-                                </th>
-                                <th
-                                    class="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant text-right"
-                                >
-                                    Actions
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-outline-variant/10">
-                            <!-- Row 1 -->
-                            <tr
-                                class="hover:bg-surface-container-low/30 transition-colors group"
-                            >
-                                <td class="px-6 py-4">
-                                    <div class="flex flex-col">
-                                        <span
-                                            class="text-sm font-semibold text-on-surface"
-                                            >2023-11-07 14:23:45</span
-                                        >
-                                        <span
-                                            class="text-[10px] text-on-surface-variant"
-                                            >42 seconds ago</span
-                                        >
-                                    </div>
-                                </td>
-                                <td class="px-6 py-4">
-                                    <span
-                                        class="inline-flex items-center px-2 py-1 bg-surface-container-high rounded text-xs font-mono font-medium text-primary"
-                                        >SNS-BR-091</span
-                                    >
-                                </td>
-                                <td class="px-6 py-4 text-center">
-                                    <span
-                                        class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-secondary-container text-on-secondary-container"
-                                    >
-                                        Normal
-                                    </span>
-                                </td>
-                                <td class="px-6 py-4">
-                                    <div class="flex items-center gap-3">
-                                        <span class="text-sm font-medium"
-                                            >18.4%</span
-                                        >
-                                        <div
-                                            class="flex-1 h-1.5 w-12 bg-surface-container rounded-full overflow-hidden"
-                                        >
-                                            <div
-                                                class="bg-secondary h-full rounded-full"
-                                                style="width: 18.4%"
-                                            ></div>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td
-                                    class="px-6 py-4 font-mono text-[11px] text-on-surface-variant"
-                                >
-                                    <div class="flex gap-2">
-                                        <span
-                                            class="bg-surface-container px-1 rounded"
-                                            >X: 0.02g</span
-                                        >
-                                        <span
-                                            class="bg-surface-container px-1 rounded"
-                                            >Y: 0.01g</span
-                                        >
-                                        <span
-                                            class="bg-surface-container px-1 rounded"
-                                            >Z: 0.98g</span
-                                        >
-                                    </div>
-                                </td>
-                                <td class="px-6 py-4 text-right">
-                                    <button
-                                        class="text-outline hover:text-primary transition-colors"
-                                    >
-                                        <span
-                                            class="material-symbols-outlined text-lg"
-                                            >more_vert</span
-                                        >
-                                    </button>
-                                </td>
-                            </tr>
-                            <!-- Row 2 -->
-                            <tr
-                                class="hover:bg-surface-container-low/30 transition-colors group"
-                            >
-                                <td class="px-6 py-4">
-                                    <div class="flex flex-col">
-                                        <span
-                                            class="text-sm font-semibold text-on-surface"
-                                            >2023-11-07 14:22:12</span
-                                        >
-                                        <span
-                                            class="text-[10px] text-on-surface-variant"
-                                            >2 minutes ago</span
-                                        >
-                                    </div>
-                                </td>
-                                <td class="px-6 py-4">
-                                    <span
-                                        class="inline-flex items-center px-2 py-1 bg-surface-container-high rounded text-xs font-mono font-medium text-primary"
-                                        >SNS-BR-104</span
-                                    >
-                                </td>
-                                <td class="px-6 py-4 text-center">
-                                    <span
-                                        class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-tertiary-fixed text-on-tertiary-fixed-variant"
-                                    >
-                                        Alert
-                                    </span>
-                                </td>
-                                <td class="px-6 py-4">
-                                    <div class="flex items-center gap-3">
-                                        <span class="text-sm font-medium"
-                                            >42.1%</span
-                                        >
-                                        <div
-                                            class="flex-1 h-1.5 w-12 bg-surface-container rounded-full overflow-hidden"
-                                        >
-                                            <div
-                                                class="bg-tertiary h-full rounded-full"
-                                                style="width: 42.1%"
-                                            ></div>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td
-                                    class="px-6 py-4 font-mono text-[11px] text-on-surface-variant"
-                                >
-                                    <div
-                                        class="flex gap-2 text-tertiary font-bold"
-                                    >
-                                        <span
-                                            class="bg-tertiary-fixed px-1 rounded"
-                                            >X: 0.45g</span
-                                        >
-                                        <span
-                                            class="bg-tertiary-fixed px-1 rounded"
-                                            >Y: 0.22g</span
-                                        >
-                                        <span
-                                            class="bg-tertiary-fixed px-1 rounded"
-                                            >Z: 1.12g</span
-                                        >
-                                    </div>
-                                </td>
-                                <td class="px-6 py-4 text-right">
-                                    <button
-                                        class="text-outline hover:text-primary transition-colors"
-                                    >
-                                        <span
-                                            class="material-symbols-outlined text-lg"
-                                            >more_vert</span
-                                        >
-                                    </button>
-                                </td>
-                            </tr>
-                            <!-- Row 3 -->
-                            <tr
-                                class="hover:bg-surface-container-low/30 transition-colors group"
-                            >
-                                <td class="px-6 py-4">
-                                    <div class="flex flex-col">
-                                        <span
-                                            class="text-sm font-semibold text-on-surface"
-                                            >2023-11-07 14:20:00</span
-                                        >
-                                        <span
-                                            class="text-[10px] text-on-surface-variant"
-                                            >4 minutes ago</span
-                                        >
-                                    </div>
-                                </td>
-                                <td class="px-6 py-4">
-                                    <span
-                                        class="inline-flex items-center px-2 py-1 bg-surface-container-high rounded text-xs font-mono font-medium text-primary"
-                                        >SNS-BR-088</span
-                                    >
-                                </td>
-                                <td class="px-6 py-4 text-center">
-                                    <span
-                                        class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-secondary-container text-on-secondary-container"
-                                    >
-                                        Normal
-                                    </span>
-                                </td>
-                                <td class="px-6 py-4">
-                                    <div class="flex items-center gap-3">
-                                        <span class="text-sm font-medium"
-                                            >12.2%</span
-                                        >
-                                        <div
-                                            class="flex-1 h-1.5 w-12 bg-surface-container rounded-full overflow-hidden"
-                                        >
-                                            <div
-                                                class="bg-secondary h-full rounded-full"
-                                                style="width: 12.2%"
-                                            ></div>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td
-                                    class="px-6 py-4 font-mono text-[11px] text-on-surface-variant"
-                                >
-                                    <div class="flex gap-2">
-                                        <span
-                                            class="bg-surface-container px-1 rounded"
-                                            >X: 0.01g</span
-                                        >
-                                        <span
-                                            class="bg-surface-container px-1 rounded"
-                                            >Y: 0.01g</span
-                                        >
-                                        <span
-                                            class="bg-surface-container px-1 rounded"
-                                            >Z: 0.99g</span
-                                        >
-                                    </div>
-                                </td>
-                                <td class="px-6 py-4 text-right">
-                                    <button
-                                        class="text-outline hover:text-primary transition-colors"
-                                    >
-                                        <span
-                                            class="material-symbols-outlined text-lg"
-                                            >more_vert</span
-                                        >
-                                    </button>
-                                </td>
-                            </tr>
-                            <!-- Row 4 -->
-                            <tr
-                                class="hover:bg-surface-container-low/30 transition-colors group"
-                            >
-                                <td class="px-6 py-4">
-                                    <div class="flex flex-col">
-                                        <span
-                                            class="text-sm font-semibold text-on-surface"
-                                            >2023-11-07 14:18:55</span
-                                        >
-                                        <span
-                                            class="text-[10px] text-on-surface-variant"
-                                            >5 minutes ago</span
-                                        >
-                                    </div>
-                                </td>
-                                <td class="px-6 py-4">
-                                    <span
-                                        class="inline-flex items-center px-2 py-1 bg-surface-container-high rounded text-xs font-mono font-medium text-primary"
-                                        >SNS-BR-091</span
-                                    >
-                                </td>
-                                <td class="px-6 py-4 text-center">
-                                    <span
-                                        class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-secondary-container text-on-secondary-container"
-                                    >
-                                        Normal
-                                    </span>
-                                </td>
-                                <td class="px-6 py-4">
-                                    <div class="flex items-center gap-3">
-                                        <span class="text-sm font-medium"
-                                            >18.5%</span
-                                        >
-                                        <div
-                                            class="flex-1 h-1.5 w-12 bg-surface-container rounded-full overflow-hidden"
-                                        >
-                                            <div
-                                                class="bg-secondary h-full rounded-full"
-                                                style="width: 18.5%"
-                                            ></div>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td
-                                    class="px-6 py-4 font-mono text-[11px] text-on-surface-variant"
-                                >
-                                    <div class="flex gap-2">
-                                        <span
-                                            class="bg-surface-container px-1 rounded"
-                                            >X: 0.03g</span
-                                        >
-                                        <span
-                                            class="bg-surface-container px-1 rounded"
-                                            >Y: 0.02g</span
-                                        >
-                                        <span
-                                            class="bg-surface-container px-1 rounded"
-                                            >Z: 0.97g</span
-                                        >
-                                    </div>
-                                </td>
-                                <td class="px-6 py-4 text-right">
-                                    <button
-                                        class="text-outline hover:text-primary transition-colors"
-                                    >
-                                        <span
-                                            class="material-symbols-outlined text-lg"
-                                            >more_vert</span
-                                        >
-                                    </button>
-                                </td>
-                            </tr>
-                            <!-- Row 5 -->
-                            <tr
-                                class="hover:bg-surface-container-low/30 transition-colors group"
-                            >
-                                <td class="px-6 py-4">
-                                    <div class="flex flex-col">
-                                        <span
-                                            class="text-sm font-semibold text-on-surface"
-                                            >2023-11-07 14:15:30</span
-                                        >
-                                        <span
-                                            class="text-[10px] text-on-surface-variant"
-                                            >8 minutes ago</span
-                                        >
-                                    </div>
-                                </td>
-                                <td class="px-6 py-4">
-                                    <span
-                                        class="inline-flex items-center px-2 py-1 bg-surface-container-high rounded text-xs font-mono font-medium text-primary"
-                                        >SNS-BR-112</span
-                                    >
-                                </td>
-                                <td class="px-6 py-4 text-center">
-                                    <span
-                                        class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-surface-container text-on-surface-variant"
-                                    >
-                                        Idle
-                                    </span>
-                                </td>
-                                <td class="px-6 py-4">
-                                    <div class="flex items-center gap-3">
-                                        <span class="text-sm font-medium"
-                                            >5.2%</span
-                                        >
-                                        <div
-                                            class="flex-1 h-1.5 w-12 bg-surface-container rounded-full overflow-hidden"
-                                        >
-                                            <div
-                                                class="bg-outline-variant h-full rounded-full"
-                                                style="width: 5.2%"
-                                            ></div>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td
-                                    class="px-6 py-4 font-mono text-[11px] text-on-surface-variant"
-                                >
-                                    <div class="flex gap-2">
-                                        <span
-                                            class="bg-surface-container px-1 rounded"
-                                            >X: 0.00g</span
-                                        >
-                                        <span
-                                            class="bg-surface-container px-1 rounded"
-                                            >Y: 0.00g</span
-                                        >
-                                        <span
-                                            class="bg-surface-container px-1 rounded"
-                                            >Z: 1.00g</span
-                                        >
-                                    </div>
-                                </td>
-                                <td class="px-6 py-4 text-right">
-                                    <button
-                                        class="text-outline hover:text-primary transition-colors"
-                                    >
-                                        <span
-                                            class="material-symbols-outlined text-lg"
-                                            >more_vert</span
-                                        >
-                                    </button>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                    <!-- Pagination Footer -->
-                    <div
-                        class="px-6 py-4 bg-surface-container-low/30 border-t border-outline-variant/15 flex items-center justify-between"
-                    >
-                        <p class="text-xs text-on-surface-variant font-medium">
-                            Showing <span class="text-on-surface">1-5</span> of
-                            <span class="text-on-surface">1,248</span> results
-                        </p>
-                        <div class="flex items-center gap-1">
-                            <button
-                                class="p-2 text-outline-variant hover:text-primary disabled:opacity-30"
-                                disabled=""
-                            >
-                                <span class="material-symbols-outlined"
-                                    >chevron_left</span
-                                >
-                            </button>
-                            <button
-                                class="w-8 h-8 flex items-center justify-center rounded-lg bg-primary text-white text-xs font-bold shadow-md shadow-primary/20"
-                            >
-                                1
-                            </button>
-                            <button
-                                class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-surface-container text-xs font-medium transition-colors"
-                            >
-                                2
-                            </button>
-                            <button
-                                class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-surface-container text-xs font-medium transition-colors"
-                            >
-                                3
-                            </button>
-                            <span class="px-2 text-outline text-xs">...</span>
-                            <button
-                                class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-surface-container text-xs font-medium transition-colors"
-                            >
-                                250
-                            </button>
-                            <button
-                                class="p-2 text-on-surface hover:text-primary"
-                            >
-                                <span class="material-symbols-outlined"
-                                    >chevron_right</span
-                                >
-                            </button>
-                        </div>
-                    </div>
-                </div>
-                <!-- Asymmetric Data Highlight Grid -->
-                <div class="grid grid-cols-12 gap-6 pt-4">
-                    <div
-                        class="col-span-12 lg:col-span-8 bg-surface-container-low rounded-3xl p-8 relative overflow-hidden"
-                    >
-                        <div class="relative z-10">
-                            <h3
-                                class="text-2xl font-extrabold font-headline mb-4"
-                            >
-                                Anomalous Activity Detection
-                            </h3>
-                            <p class="text-on-surface-variant max-w-lg mb-6">
-                                Our sentient topography model has detected a 12%
-                                increase in soil moisture on North Ridge Cluster
-                                Alpha. Displacement monitoring is recommended
-                                for the next 24 hours.
-                            </p>
-                            <button
-                                class="bg-on-surface text-surface py-3 px-6 rounded-full font-bold text-sm hover:opacity-90 transition-all"
-                            >
-                                Review Cluster Data
-                            </button>
-                        </div>
-                        <!-- Decorative Element -->
-                        <div
-                            class="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-l from-primary/5 to-transparent pointer-events-none"
-                        ></div>
-                    </div>
-                    <div
-                        class="col-span-12 lg:col-span-4 bg-primary text-on-primary rounded-3xl p-8 flex flex-col justify-between shadow-xl shadow-primary/20"
-                    >
-                        <div>
-                            <div
-                                class="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center mb-6 backdrop-blur-sm"
-                            >
-                                <span
-                                    class="material-symbols-outlined"
-                                    style="
-                                        font-variation-settings: &quot;FILL&quot;
-                                            1;
-                                    "
-                                    >sensors</span
-                                >
-                            </div>
-                            <h3
-                                class="text-3xl font-extrabold font-headline leading-tight"
-                            >
-                                98.4%<br />Network Health
-                            </h3>
-                        </div>
-                        <div class="pt-6 border-t border-white/10">
-                            <p class="text-sm font-medium opacity-80">
-                                142 sensors active across 5 zones.
-                            </p>
-                        </div>
-                    </div>
-                </div>
+            <!-- Decorative Sentient Topography Element -->
+            <div
+                class="fixed bottom-0 left-0 w-full h-1/2 -z-10 opacity-30 pointer-events-none"
+            >
+                <img
+                    class="w-full h-full object-cover"
+                    data-alt="abstract topographical line art representing mountain ridges with soft blue and silver gradients against a clean white background"
+                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuBppTjXcpk_A1m88vnw4xoHlhMTSRzdGDPKer8pbWNppKYy5melHDKNC9W_lebXvIHAXwR_a7BE3xkDdZq8V8YDlAIxgcaaEx-ZMB7cHPjw2t56jxL7FQMsgale3Z5FTKdVnILTXi5oUMUJUKYgT7aMEcLQ4tBoiNXfX4thCQwVZnsxp1fBykE1ABj004t6W05ADuPEN6FXMiR3w-XTlY9zN0PRHcFyJ_youYnyMW08hnqKjYvVyIcEglWVZmP4tDoWOQcpBD2dZ5-D"
+                />
             </div>
         </main>
+        <!-- Footer from JSON -->
+        <footer
+            class="w-full max-w-7xl mx-auto px-8 py-12 flex flex-col md:flex-row justify-between items-center opacity-70 bg-transparent"
+        >
+            <div class="mb-4 md:mb-0">
+                <span
+                    class="text-lg font-bold text-[#0b1c30] dark:text-[#f8f9ff] font-headline tracking-tighter"
+                    >GeoSense IoT</span
+                >
+            </div>
+            <div class="flex flex-col md:flex-row items-center gap-6">
+                <p
+                    class="font-['Inter'] text-sm text-[#434655] dark:text-[#c3c6d7]"
+                >
+                    © 2024 Digital Geologist Systems. All rights reserved.
+                </p>
+                <div class="flex gap-4">
+                    <a
+                        class="font-['Inter'] text-sm text-[#434655] dark:text-[#c3c6d7] hover:text-[#2563eb] transition-all duration-200"
+                        href="#"
+                        >Privacy Policy</a
+                    >
+                    <a
+                        class="font-['Inter'] text-sm text-[#434655] dark:text-[#c3c6d7] hover:text-[#2563eb] transition-all duration-200"
+                        href="#"
+                        >Terms of Service</a
+                    >
+                    <a
+                        class="font-['Inter'] text-sm text-[#434655] dark:text-[#c3c6d7] hover:text-[#2563eb] transition-all duration-200"
+                        href="#"
+                        >Security</a
+                    >
+                </div>
+            </div>
+        </footer>
     </body>
 </html>

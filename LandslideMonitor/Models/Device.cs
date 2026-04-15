@@ -14,7 +14,8 @@ public class Device
     public string Name { get; set; }
 
     public DeviceStatus Status { get; set; }
-    public string Location { get; set; }
+    public int ProvinceId { get; set; }
+    public Province Province { get; set; }
     public DateTime LastSeen { get; set; }
 
     public double? LastLatitude { get; set; }

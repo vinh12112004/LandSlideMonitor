@@ -1,5 +1,7 @@
 using LandslideMonitor.Data;
+using LandslideMonitor.Helpers;
 using LandslideMonitor.Hubs;
+using LandslideMonitor.Models;
 using LandslideMonitor.Repositories.Implementations;
 using LandslideMonitor.Repositories.Interfaces;
 using LandslideMonitor.Services;
@@ -37,14 +39,38 @@ builder.Services.AddScoped<ISensorDataRepository, SensorDataDataRepository>();
 builder.Services.AddScoped<ISensorDataService, SensorDataService>();
 builder.Services.AddScoped<IDeviceRepository, DeviceRepository>();
 builder.Services.AddScoped<IDeviceService, DeviceService>();
+builder.Services.AddScoped<IProvinceRepository, ProvinceRepository>();
+builder.Services.AddScoped<IProvinceService, ProvinceService>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<AuthService>();
+builder.Services.AddScoped<JwtService>();
+builder.Services.AddScoped<IUserService, UserService>();
 
 var app = builder.Build();
+app.UseMiddleware<ExceptionMiddleware>();
 app.MapHub<SensorHub>("/sensorHub");
 app.UseCors("AllowFrontend");
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
  
+}
+using (var scope = app.Services.CreateScope())
+{
+    var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+    if (!context.Users.Any())
+    {
+        var admin = new User
+        {
+            Username = "admin",
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword("123456"),
+            Role = "Admin"
+        };
+
+        context.Users.Add(admin);
+        context.SaveChanges();
+    }
 }
 app.UseSwagger();
 app.UseSwaggerUI();

@@ -17,7 +17,9 @@ public class DeviceRepository : IDeviceRepository
 
     public async Task<List<Device>> GetAllAsync()
     {
-        return await _db.Devices.ToListAsync();
+        return await _db.Devices
+            .Include(d => d.Province) 
+            .ToListAsync();
     }
 
     public async Task<Device?> GetByIdAsync(string deviceId)

@@ -8,16 +8,27 @@ namespace LandslideMonitor.Services.Implementations;
 public class DeviceService : IDeviceService
 {
     private readonly IDeviceRepository _repo;
-    private IDeviceService _deviceServiceImplementation;
 
     public DeviceService(IDeviceRepository repo)
     {
         _repo = repo;
     }
 
-    public async Task<List<Device>> GetAllAsync()
+    public async Task<List<DeviceDto>> GetAllAsync()
     {
-        return await _repo.GetAllAsync();
+        var devices = await _repo.GetAllAsync();
+
+        return devices.Select(d => new DeviceDto
+        {
+            DeviceId = d.DeviceId,
+            Name = d.Name,
+            Status = d.Status,
+            ProvinceId = d.ProvinceId,
+            ProvinceName = d.Province?.Name,
+            LastSeen = d.LastSeen,
+            LastLatitude = d.LastLatitude,
+            LastLongitude = d.LastLongitude
+        }).ToList();
     }
 
     public async Task<Device?> GetByIdAsync(string deviceId)
@@ -34,9 +45,9 @@ public class DeviceService : IDeviceService
         var device = new Device
         {
             DeviceId = dto.DeviceId,
-            Location = dto.Location,
+            Name = dto.Name, 
+            ProvinceId = dto.ProvinceId,
             Status = DeviceStatus.Offline,
-            LastSeen = DateTime.UtcNow
         };
 
         await _repo.AddAsync(device);
@@ -93,7 +104,7 @@ public class DeviceService : IDeviceService
             return null;
 
         device.Name = dto.Name;
-        device.Location = dto.Location;
+        device.ProvinceId = dto.ProvinceId;
         device.Status = dto.Status;
 
         await _repo.UpdateAsync(device);

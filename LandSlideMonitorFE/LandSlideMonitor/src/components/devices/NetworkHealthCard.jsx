@@ -6,14 +6,14 @@ export default function NetworkHealthCard({ devices }) {
         <div className="col-span-12 lg:col-span-4 bg-surface-container-low rounded-3xl p-8 relative overflow-hidden">
             <div className="relative z-10">
                 <p className="text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-6">
-                    Network Health
+                    Tình trạng mạng lưới
                 </p>
                 <div className="flex items-baseline gap-2">
                     <span className="text-5xl font-extrabold font-headline text-primary">
                         {online}
                     </span>
                     <span className="text-on-surface-variant font-medium">
-                        / {total} Active
+                        / {total} đang hoạt động
                     </span>
                 </div>
                 {/* Progress bar visual */}

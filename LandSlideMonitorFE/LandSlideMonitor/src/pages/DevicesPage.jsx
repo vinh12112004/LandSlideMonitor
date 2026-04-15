@@ -5,26 +5,26 @@ import MaintenanceInsights from "../components/devices/MaintenanceInsights";
 import deviceService from "../services/deviceService";
 import { getConnection } from "../services/signalr";
 import AddEditDeviceModal from "../components/devices/AddEditDeviceModal";
+import { getProvinces } from "../services/provinceService";
 
 export default function DevicesPage({ searchQuery }) {
     const [devices, setDevices] = useState([]);
+    const [provinces, setProvinces] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [editingDevice, setEditingDevice] = useState(null); // null for Add, object for Edit
+    const [editingDevice, setEditingDevice] = useState(null);
     const [submitting, setSubmitting] = useState(false);
     const [deletingId, setDeletingId] = useState(null);
 
-    // ── Fetch danh sách thiết bị khi mount ──────────────────────────
     useEffect(() => {
         fetchDevices();
+        fetchProvinces();
 
         const connection = getConnection();
         if (!connection) return;
 
         const handler = (data) => {
-            console.log("SignalR: DeviceStatusChanged", data);
-
             setDevices((prev) =>
                 prev.map((device) =>
                     device.deviceId === data.deviceId
@@ -48,7 +48,17 @@ export default function DevicesPage({ searchQuery }) {
             connection.off("DeviceStatusChanged", handler);
         };
     }, []);
-
+    const fetchProvinces = async () => {
+        try {
+            const data = await getProvinces();
+            setProvinces(data);
+        } catch (err) {
+            console.error(err);
+        }
+    };
+    const getProvinceName = (id) => {
+        return provinces.find((p) => p.id === id)?.name || "Không rõ";
+    };
     const fetchDevices = async () => {
         try {
             setLoading(true);
@@ -99,7 +109,7 @@ export default function DevicesPage({ searchQuery }) {
         try {
             setSubmitting(true);
             if (editingDevice) {
-                // Update
+                // Cập nhật
                 const updated = await deviceService.update(
                     editingDevice.deviceId,
                     deviceData,
@@ -110,7 +120,7 @@ export default function DevicesPage({ searchQuery }) {
                     ),
                 );
             } else {
-                // Create
+                // Tạo mới
                 const created = await deviceService.create(deviceData);
                 setDevices((prev) => [...prev, created]);
             }
@@ -124,12 +134,15 @@ export default function DevicesPage({ searchQuery }) {
     };
 
     // ── Lọc theo search ─────────────────────────────────────────────
-    const filtered = devices.filter(
-        (d) =>
-            d.deviceId.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            d.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            d.name.toLowerCase().includes(searchQuery.toLowerCase()),
-    );
+    const filtered = devices.filter((d) => {
+        const provinceName = getProvinceName(d.provinceId).toLowerCase();
+        const query = searchQuery.toLowerCase();
+
+        return (
+            d.deviceId.toLowerCase().includes(query) ||
+            provinceName.includes(query)
+        );
+    });
 
     // ── Loading state ────────────────────────────────────────────────
     if (loading) {
@@ -178,11 +191,11 @@ export default function DevicesPage({ searchQuery }) {
             <div className="flex justify-between items-end mb-12">
                 <div>
                     <h2 className="text-4xl font-extrabold tracking-tight text-on-surface mb-2">
-                        Device Management
+                        Quản lý thiết bị
                     </h2>
                     <p className="text-on-surface-variant font-body">
-                        Manage and monitor the health of your seismic sensor
-                        network.
+                        Quản lý và theo dõi tình trạng của mạng lưới cảm biến
+                        địa chấn.
                     </p>
                 </div>
                 <button
@@ -190,7 +203,7 @@ export default function DevicesPage({ searchQuery }) {
                     className="flex items-center gap-2 px-6 py-3.5 bg-gradient-to-br from-primary to-primary-container text-white rounded-full font-bold shadow-lg shadow-primary/20 hover:shadow-xl hover:-translate-y-0.5 transition-all"
                 >
                     <span className="material-symbols-outlined">add</span>
-                    <span>Add New Device</span>
+                    <span>Thêm thiết bị mới</span>
                 </button>
             </div>
 
@@ -200,6 +213,7 @@ export default function DevicesPage({ searchQuery }) {
                 <DeviceTable
                     devices={filtered}
                     onDelete={handleDelete}
+                    getProvinceName={getProvinceName}
                     onEdit={handleOpenEditModal}
                     deletingId={deletingId}
                 />
@@ -210,6 +224,7 @@ export default function DevicesPage({ searchQuery }) {
                 <AddEditDeviceModal
                     key={editingDevice?.deviceId || "new"}
                     device={editingDevice}
+                    provinces={provinces}
                     onClose={handleCloseModal}
                     onSave={handleSaveDevice}
                     submitting={submitting}

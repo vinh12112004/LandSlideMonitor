@@ -5,7 +5,7 @@ namespace LandslideMonitor.Services.Interfaces;
 
 public interface IDeviceService
 {
-    Task<List<Device>> GetAllAsync();
+    Task<List<DeviceDto>> GetAllAsync();
     Task<Device?> GetByIdAsync(string deviceId);
     Task<Device?> CreateAsync(CreateDeviceDto dto);
     Task<bool> DeleteAsync(string deviceId);

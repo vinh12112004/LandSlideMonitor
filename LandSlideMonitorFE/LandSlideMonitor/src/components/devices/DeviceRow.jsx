@@ -1,7 +1,13 @@
 import StatusBadge from "../ui/StatusBadge";
 import { formatRelativeTime } from "../../utils/time";
 
-export default function DeviceRow({ device, onDelete, onEdit, deletingId }) {
+export default function DeviceRow({
+    device,
+    onDelete,
+    onEdit,
+    deletingId,
+    getProvinceName,
+}) {
     const isDeleting = deletingId === device.deviceId;
 
     return (
@@ -27,10 +33,12 @@ export default function DeviceRow({ device, onDelete, onEdit, deletingId }) {
                 </p>
             </td>
 
-            {/* Location */}
+            {/* Province */}
             <td className="px-6 py-5">
                 <p className="text-sm text-on-surface-variant">
-                    {device.location}
+                    {device.provinceName
+                        ? device.provinceName
+                        : getProvinceName(device.provinceId)}
                 </p>
             </td>
 

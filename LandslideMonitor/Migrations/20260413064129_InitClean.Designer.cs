@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace LandslideMonitor.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260410094429_addstatusforsensordata")]
-    partial class addstatusforsensordata
+    [Migration("20260413064129_InitClean")]
+    partial class InitClean
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -39,16 +39,38 @@ namespace LandslideMonitor.Migrations
                     b.Property<DateTime>("LastSeen")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("Location")
+                    b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("ProvinceId")
+                        .HasColumnType("int");
 
                     b.Property<int>("Status")
                         .HasColumnType("int");
 
                     b.HasKey("DeviceId");
 
+                    b.HasIndex("ProvinceId");
+
                     b.ToTable("Devices");
+                });
+
+            modelBuilder.Entity("LandslideMonitor.Models.Province", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Provinces");
                 });
 
             modelBuilder.Entity("LandslideMonitor.Models.SensorData", b =>
@@ -90,6 +112,22 @@ namespace LandslideMonitor.Migrations
                     b.HasKey("id");
 
                     b.ToTable("SensorDatas");
+                });
+
+            modelBuilder.Entity("LandslideMonitor.Models.Device", b =>
+                {
+                    b.HasOne("LandslideMonitor.Models.Province", "Province")
+                        .WithMany("Devices")
+                        .HasForeignKey("ProvinceId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Province");
+                });
+
+            modelBuilder.Entity("LandslideMonitor.Models.Province", b =>
+                {
+                    b.Navigation("Devices");
                 });
 #pragma warning restore 612, 618
         }

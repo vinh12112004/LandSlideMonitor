@@ -1,18 +1,18 @@
 const STATUS_MAP = {
     0: {
-        text: "OFFLINE",
+        text: "Ngoại tuyến",
         className: "bg-surface-container text-on-surface-variant",
     },
     1: {
-        text: "ONLINE",
+        text: "Trực tuyến",
         className: "bg-secondary-container text-on-secondary-container",
     },
     2: {
-        text: "LOW BATTERY",
+        text: "Pin yếu",
         className: "bg-yellow-200 text-yellow-800",
     },
     3: {
-        text: "MAINTENANCE",
+        text: "Bảo trì",
         className: "bg-blue-200 text-blue-800",
     },
 };

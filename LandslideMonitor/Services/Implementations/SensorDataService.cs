@@ -68,7 +68,7 @@ public class SensorDataService : ISensorDataService
     {
         var query = _sensorDataRepo.GetQuery();
 
-        if (!param.DeviceId.IsNullOrEmpty())
+        if (!string.IsNullOrEmpty(param.DeviceId))
             query = query.Where(x =>  x.DeviceId.Contains(param.DeviceId));
 
         if (param.Status.HasValue)

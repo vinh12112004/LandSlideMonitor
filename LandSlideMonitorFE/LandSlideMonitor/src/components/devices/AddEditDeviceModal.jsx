@@ -1,35 +1,35 @@
 import { useState } from "react";
 
 const STATUS_OPTIONS = [
-    { value: 0, label: "Offline" },
-    { value: 1, label: "Online" },
-    { value: 2, label: "Low Battery" },
-    { value: 3, label: "Maintenance" },
+    { value: 0, label: "Ngoại tuyến" },
+    { value: 1, label: "Trực tuyến" },
+    { value: 2, label: "Pin yếu" },
+    { value: 3, label: "Bảo trì" },
 ];
 
 export default function AddEditDeviceModal({
     device,
+    provinces,
     onClose,
     onSave,
     submitting,
 }) {
     const isEditMode = !!device;
 
-    // 👉 Init state từ props (KHÔNG dùng useEffect)
     const getInitialFormData = () => {
         if (device) {
             return {
                 deviceId: device.deviceId,
                 name: device.name,
-                location: device.location,
+                provinceId: device.provinceId,
                 status: device.status,
             };
         }
         return {
             deviceId: "",
             name: "",
-            location: "",
-            status: 1, // default Online
+            provinceId: "",
+            status: 1,
         };
     };
 
@@ -37,9 +37,13 @@ export default function AddEditDeviceModal({
 
     const handleChange = (e) => {
         const { name, value } = e.target;
+
         setFormData((prev) => ({
             ...prev,
-            [name]: name === "status" ? parseInt(value, 10) : value,
+            [name]:
+                name === "status" || name === "provinceId"
+                    ? parseInt(value, 10)
+                    : value,
         }));
     };
 
@@ -49,49 +53,43 @@ export default function AddEditDeviceModal({
         const dataToSave = isEditMode
             ? {
                   name: formData.name.trim(),
-                  location: formData.location.trim(),
+                  provinceId: formData.provinceId,
                   status: formData.status,
               }
             : {
                   deviceId: formData.deviceId.trim(),
                   name: formData.name.trim(),
-                  location: formData.location.trim(),
+                  provinceId: formData.provinceId,
               };
 
         onSave(dataToSave);
     };
 
     const isFormValid = isEditMode
-        ? formData.name.trim() && formData.location.trim()
+        ? formData.name.trim() && formData.provinceId
         : formData.deviceId.trim() &&
           formData.name.trim() &&
-          formData.location.trim();
+          formData.provinceId;
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm">
             <div className="bg-white rounded-3xl p-8 w-full max-w-md shadow-2xl">
-                <h3 className="text-xl font-extrabold text-on-surface mb-6">
-                    {isEditMode ? "Edit Device" : "Add New Device"}
+                <h3 className="text-xl font-extrabold mb-6">
+                    {isEditMode ? "Chỉnh sửa thiết bị" : "Thêm thiết bị mới"}
                 </h3>
 
                 <form onSubmit={handleSubmit} className="space-y-4">
-                    {/* Device ID (only when Add) */}
+                    {/* Device ID */}
                     {!isEditMode && (
                         <div>
-                            <label
-                                htmlFor="deviceId"
-                                className="text-xs font-bold text-on-surface-variant uppercase tracking-wider block mb-1"
-                            >
-                                Device ID
+                            <label className="text-xs font-bold block mb-1">
+                                Mã thiết bị
                             </label>
                             <input
-                                id="deviceId"
                                 name="deviceId"
-                                type="text"
-                                placeholder="ESP32-S3-V1-001"
                                 value={formData.deviceId}
                                 onChange={handleChange}
-                                className="w-full border border-outline-variant/40 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                                className="w-full border rounded-xl px-4 py-2.5 text-sm"
                                 required
                             />
                         </div>
@@ -99,59 +97,50 @@ export default function AddEditDeviceModal({
 
                     {/* Name */}
                     <div>
-                        <label
-                            htmlFor="name"
-                            className="text-xs font-bold text-on-surface-variant uppercase tracking-wider block mb-1"
-                        >
-                            Device Name
+                        <label className="text-xs font-bold block mb-1">
+                            Tên thiết bị
                         </label>
                         <input
-                            id="name"
                             name="name"
-                            type="text"
-                            placeholder="Sensor Alpha"
                             value={formData.name}
                             onChange={handleChange}
-                            className="w-full border border-outline-variant/40 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                            className="w-full border rounded-xl px-4 py-2.5 text-sm"
                             required
                         />
                     </div>
 
-                    {/* Location */}
+                    {/* Province */}
                     <div>
-                        <label
-                            htmlFor="location"
-                            className="text-xs font-bold text-on-surface-variant uppercase tracking-wider block mb-1"
-                        >
-                            Location
+                        <label className="text-xs font-bold block mb-1">
+                            Tỉnh/Thành phố
                         </label>
-                        <input
-                            id="location"
-                            name="location"
-                            type="text"
-                            placeholder="North Ridge / Section C"
-                            value={formData.location}
+                        <select
+                            name="provinceId"
+                            value={formData.provinceId}
                             onChange={handleChange}
-                            className="w-full border border-outline-variant/40 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                            className="w-full border rounded-xl px-4 py-2.5 text-sm bg-white"
                             required
-                        />
+                        >
+                            <option value="">-- Chọn tỉnh --</option>
+                            {provinces.map((p) => (
+                                <option key={p.id} value={p.id}>
+                                    {p.name}
+                                </option>
+                            ))}
+                        </select>
                     </div>
 
-                    {/* Status (only when Edit) */}
+                    {/* Status */}
                     {isEditMode && (
                         <div>
-                            <label
-                                htmlFor="status"
-                                className="text-xs font-bold text-on-surface-variant uppercase tracking-wider block mb-1"
-                            >
-                                Status
+                            <label className="text-xs font-bold block mb-1">
+                                Trạng thái
                             </label>
                             <select
-                                id="status"
                                 name="status"
                                 value={formData.status}
                                 onChange={handleChange}
-                                className="w-full border border-outline-variant/40 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 bg-white"
+                                className="w-full border rounded-xl px-4 py-2.5 text-sm bg-white"
                             >
                                 {STATUS_OPTIONS.map((opt) => (
                                     <option key={opt.value} value={opt.value}>
@@ -168,26 +157,17 @@ export default function AddEditDeviceModal({
                             type="button"
                             onClick={onClose}
                             disabled={submitting}
-                            className="flex-1 py-3 border border-outline-variant/30 rounded-xl text-sm font-bold text-on-surface-variant hover:bg-surface-container-low transition-colors disabled:opacity-50"
+                            className="flex-1 py-3 border rounded-xl text-sm font-bold"
                         >
-                            Cancel
+                            Hủy
                         </button>
 
                         <button
                             type="submit"
                             disabled={submitting || !isFormValid}
-                            className="flex-1 py-3 bg-primary text-white rounded-xl text-sm font-bold hover:bg-primary/90 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                            className="flex-1 py-3 bg-primary text-white rounded-xl text-sm font-bold"
                         >
-                            {submitting ? (
-                                <>
-                                    <span className="material-symbols-outlined text-sm animate-spin">
-                                        progress_activity
-                                    </span>
-                                    Đang lưu...
-                                </>
-                            ) : (
-                                "Save Device"
-                            )}
+                            {submitting ? "Đang lưu..." : "Lưu thiết bị"}
                         </button>
                     </div>
                 </form>
