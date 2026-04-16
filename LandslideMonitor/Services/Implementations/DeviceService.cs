@@ -1,4 +1,5 @@
 using LandslideMonitor.DTOs;
+using LandslideMonitor.Helpers;
 using LandslideMonitor.Models;
 using LandslideMonitor.Repositories.Interfaces;
 using LandslideMonitor.Services.Interfaces;
@@ -14,11 +15,11 @@ public class DeviceService : IDeviceService
         _repo = repo;
     }
 
-    public async Task<List<DeviceDto>> GetAllAsync()
+    public async Task<PagedResult<DeviceDto>> GetAllAsync(DeviceFilterParams filterParams)
     {
-        var devices = await _repo.GetAllAsync();
+        var devicesPage = await _repo.GetAllAsync(filterParams);
 
-        return devices.Select(d => new DeviceDto
+        var deviceDtos = devicesPage.Data.Select(d => new DeviceDto
         {
             DeviceId = d.DeviceId,
             Name = d.Name,
@@ -28,16 +29,26 @@ public class DeviceService : IDeviceService
             LastSeen = d.LastSeen,
             LastLatitude = d.LastLatitude,
             LastLongitude = d.LastLongitude
-        }).ToList();
+        });
+
+        return new PagedResult<DeviceDto>(
+            deviceDtos,
+            devicesPage.TotalCount,
+            devicesPage.CurrentPage,
+            devicesPage.PageSize
+        );
     }
 
-    public async Task<Device?> GetByIdAsync(string deviceId)
+    public async Task<Device?> GetByIdAsync(string deviceId, bool? isMqtt = false)
     {
-        return await _repo.GetByIdAsync(deviceId);
+        return await _repo.GetByIdAsync(deviceId, isMqtt);
     }
 
     public async Task<Device?> CreateAsync(CreateDeviceDto dto)
     {
+        if (!_repo.HasAccessToProvince(dto.ProvinceId))
+            throw new UnauthorizedAccessException("Không có quyền tạo thiết bị ở tỉnh này");
+
         var existing = await _repo.GetByIdAsync(dto.DeviceId);
         if (existing != null)
             return null;
@@ -45,7 +56,7 @@ public class DeviceService : IDeviceService
         var device = new Device
         {
             DeviceId = dto.DeviceId,
-            Name = dto.Name, 
+            Name = dto.Name,
             ProvinceId = dto.ProvinceId,
             Status = DeviceStatus.Offline,
         };
@@ -70,7 +81,7 @@ public class DeviceService : IDeviceService
 
     public async Task<Device> UpdateStatusAsync(string deviceId, DeviceStatus status, DateTime lastSeen, double? lat, double? lon)
     {
-        var device = await _repo.GetByIdAsync(deviceId);
+        var device = await _repo.GetByIdAsync(deviceId,true);
         if (device == null)
             return null;
 

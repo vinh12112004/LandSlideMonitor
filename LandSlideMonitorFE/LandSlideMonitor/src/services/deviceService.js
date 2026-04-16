@@ -1,8 +1,8 @@
 import api from "../lib/axios";
 
 const deviceService = {
-    getAll: async () => {
-        const res = await api.get("/devices");
+    getAll: async (params) => {
+        const res = await api.get("/devices", { params });
         return res.data;
     },
 

@@ -27,7 +27,7 @@ export default function DeviceMarker({ data }) {
                         <strong>Device ID:</strong> {data.deviceId}
                     </p>
                     <p>
-                        <strong>Location:</strong> {data.location}
+                        <strong>Tỉnh/Thành:</strong> {data.provinceName}
                     </p>
                     <hr className="my-2" />
                     <p>

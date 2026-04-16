@@ -6,7 +6,7 @@ import paho.mqtt.client as mqtt
 
 client = mqtt.Client()
 client.connect("localhost", 1883)
-device_id = "ESP32_HN_02"
+device_id = "ESP32_HN_03"
 payload = {
     "deviceId": device_id,
     "timestamp": datetime.utcnow().isoformat(),
@@ -17,8 +17,8 @@ payload = {
         "z": random.uniform(9.5, 10.5)
     },
     "gps": {
-        "lat": 20.9542,
-        "lon": 105.8558
+        "lat": 20.96,
+        "lon": 105.82
     }
 }
 topic = f"landslide/{device_id}/data"

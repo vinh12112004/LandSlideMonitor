@@ -1,15 +1,14 @@
 const TIME_UNITS = [
-    { unit: "year", seconds: 31536000 },
-    { unit: "month", seconds: 2592000 },
-    { unit: "day", seconds: 86400 },
-    { unit: "hour", seconds: 3600 },
-    { unit: "minute", seconds: 60 },
-    { unit: "second", seconds: 1 },
+    { unit: "năm", seconds: 31536000 },
+    { unit: "tháng", seconds: 2592000 },
+    { unit: "ngày", seconds: 86400 },
+    { unit: "giờ", seconds: 3600 },
+    { unit: "phút", seconds: 60 },
+    { unit: "giây", seconds: 1 },
 ];
-
 export function formatRelativeTime(dateString) {
     if (!dateString || dateString.startsWith("0001-01-01")) {
-        return "Never";
+        return "Chưa có dữ liệu";
     }
 
     const pastDate = new Date(dateString + "Z");
@@ -17,17 +16,17 @@ export function formatRelativeTime(dateString) {
     const secondsAgo = Math.round((now - pastDate) / 1000);
 
     if (secondsAgo < 5) {
-        return "just now";
+        return "Vừa xong";
     }
 
     for (const { unit, seconds } of TIME_UNITS) {
         const interval = Math.floor(secondsAgo / seconds);
         if (interval >= 1) {
-            return `${interval} ${unit}${interval > 1 ? "s" : ""} ago`;
+            return `${interval} ${unit} trước`;
         }
     }
 
-    return "just now";
+    return "Vừa xong";
 }
 
 export function formatDateTime(dateString) {

@@ -1,14 +1,19 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import NetworkHealthCard from "../components/devices/NetworkHealthCard";
 import DeviceTable from "../components/devices/DeviceTable";
-import MaintenanceInsights from "../components/devices/MaintenanceInsights";
 import deviceService from "../services/deviceService";
 import { getConnection } from "../services/signalr";
 import AddEditDeviceModal from "../components/devices/AddEditDeviceModal";
 import { getProvinces } from "../services/provinceService";
+import HistoryPagination from "../components/history/HistoryPagination"; // Tái sử dụng component phân trang
+import DeviceFilters from "../components/devices/DeviceFilters";
+import { getCurrentUser } from "../services/authService";
 
-export default function DevicesPage({ searchQuery }) {
+export default function DevicesPage() {
+    const [currentUser, setCurrentUser] = useState(null);
+    const [searchQuery, setSearchQuery] = useState("");
     const [devices, setDevices] = useState([]);
+    const [allDevicesForHealthCard, setAllDevicesForHealthCard] = useState([]);
     const [provinces, setProvinces] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -16,15 +21,127 @@ export default function DevicesPage({ searchQuery }) {
     const [editingDevice, setEditingDevice] = useState(null);
     const [submitting, setSubmitting] = useState(false);
     const [deletingId, setDeletingId] = useState(null);
+    const [filters, setFilters] = useState({
+        provinceId: "all",
+        status: "all",
+    });
+    const [pagination, setPagination] = useState({
+        currentPage: 1,
+        totalPages: 1,
+        totalCount: 0,
+        pageSize: 10,
+    });
 
+    const fetchDevices = useCallback(
+        async (page = 1) => {
+            if (!currentUser) return;
+
+            try {
+                setLoading(true);
+                setError(null);
+
+                let provinceIdToSend =
+                    filters.provinceId === "all" ? null : filters.provinceId;
+                if (currentUser.role === "Manager") {
+                    if (
+                        filters.provinceId !== "all" &&
+                        !currentUser.provinceIds.includes(
+                            parseInt(filters.provinceId),
+                        )
+                    ) {
+                        provinceIdToSend = null;
+                    }
+                }
+
+                const params = {
+                    pageNumber: page,
+                    pageSize: pagination.pageSize,
+                    searchTerm: searchQuery,
+                    provinceId: provinceIdToSend,
+                    status: filters.status === "all" ? null : filters.status,
+                };
+                const result = await deviceService.getAll(params);
+                setDevices(result.data);
+                setPagination((prev) => ({
+                    ...prev,
+                    currentPage: result.currentPage,
+                    totalPages: result.totalPages,
+                    totalCount: result.totalCount,
+                }));
+            } catch (err) {
+                setError("Không thể tải danh sách thiết bị. Vui lòng thử lại.");
+                console.error(err);
+            } finally {
+                setLoading(false);
+            }
+        },
+        [pagination.pageSize, searchQuery, filters, currentUser],
+    );
+
+    const fetchAllDevicesForHealthCard = useCallback(async () => {
+        if (!currentUser) return;
+        try {
+            // Lấy tất cả thiết bị, backend sẽ tự lọc theo quyền của user
+            const result = await deviceService.getAll({
+                pageNumber: 1,
+                pageSize: 9999,
+            });
+            setAllDevicesForHealthCard(result.data);
+        } catch (error) {
+            console.error(
+                "Failed to fetch all devices for health card:",
+                error,
+            );
+        }
+    }, [currentUser]);
+
+    // Effect to initialize user and provinces
     useEffect(() => {
-        fetchDevices();
-        fetchProvinces();
+        const user = getCurrentUser();
+        setCurrentUser(user);
 
+        const fetchInitialProvinces = async () => {
+            try {
+                const data = await getProvinces();
+                setProvinces(data);
+            } catch (err) {
+                console.error(err);
+            }
+        };
+        fetchInitialProvinces();
+    }, []);
+
+    // Effect for search and filter changes
+    useEffect(() => {
+        if (currentUser) {
+            const timer = setTimeout(() => {
+                fetchDevices(1); // Reset to page 1 on filter change
+                fetchAllDevicesForHealthCard();
+            }, 300);
+            return () => clearTimeout(timer);
+        }
+    }, [
+        searchQuery,
+        filters,
+        currentUser,
+        fetchDevices,
+        fetchAllDevicesForHealthCard,
+    ]);
+
+    // Effect for page changes
+    useEffect(() => {
+        if (currentUser) {
+            fetchDevices(pagination.currentPage);
+        }
+    }, [pagination.currentPage, currentUser, fetchDevices]);
+
+    // Effect for SignalR updates
+    useEffect(() => {
         const connection = getConnection();
         if (!connection) return;
 
         const handler = (data) => {
+            // Update list in real-time
             setDevices((prev) =>
                 prev.map((device) =>
                     device.deviceId === data.deviceId
@@ -40,6 +157,8 @@ export default function DevicesPage({ searchQuery }) {
                         : device,
                 ),
             );
+            // Also refresh health card data
+            fetchAllDevicesForHealthCard();
         };
 
         connection.on("DeviceStatusChanged", handler);
@@ -47,33 +166,19 @@ export default function DevicesPage({ searchQuery }) {
         return () => {
             connection.off("DeviceStatusChanged", handler);
         };
-    }, []);
-    const fetchProvinces = async () => {
-        try {
-            const data = await getProvinces();
-            setProvinces(data);
-        } catch (err) {
-            console.error(err);
-        }
-    };
+    }, [fetchAllDevicesForHealthCard]);
+
+    const userProvinces =
+        currentUser?.role === "Admin"
+            ? provinces
+            : provinces.filter((p) => currentUser?.provinceIds.includes(p.id));
+
     const getProvinceName = (id) => {
         return provinces.find((p) => p.id === id)?.name || "Không rõ";
     };
-    const fetchDevices = async () => {
-        try {
-            setLoading(true);
-            setError(null);
-            const data = await deviceService.getAll();
-            setDevices(data);
-        } catch (err) {
-            setError("Không thể tải danh sách thiết bị. Vui lòng thử lại.");
-            console.error(err);
-        } finally {
-            setLoading(false);
-        }
+    const handleFilterChange = (key, value) => {
+        setFilters((prev) => ({ ...prev, [key]: value }));
     };
-
-    // ── Mở modal ───────────────────────────────────────────────────
     const handleOpenAddModal = () => {
         setEditingDevice(null);
         setIsModalOpen(true);
@@ -89,13 +194,13 @@ export default function DevicesPage({ searchQuery }) {
         setEditingDevice(null);
     };
 
-    // ── Xóa thiết bị ────────────────────────────────────────────────
     const handleDelete = async (id) => {
         if (!confirm(`Xóa thiết bị ${id}?`)) return;
         try {
             setDeletingId(id);
             await deviceService.delete(id);
-            setDevices((prev) => prev.filter((d) => d.deviceId !== id));
+            fetchDevices(pagination.currentPage);
+            fetchAllDevicesForHealthCard(); // Refresh health card after delete
         } catch (err) {
             alert("Xóa thất bại. Vui lòng thử lại.");
             console.error(err);
@@ -104,26 +209,16 @@ export default function DevicesPage({ searchQuery }) {
         }
     };
 
-    // ── Thêm/Sửa thiết bị ───────────────────────────────────────────
     const handleSaveDevice = async (deviceData) => {
         try {
             setSubmitting(true);
             if (editingDevice) {
-                // Cập nhật
-                const updated = await deviceService.update(
-                    editingDevice.deviceId,
-                    deviceData,
-                );
-                setDevices((prev) =>
-                    prev.map((d) =>
-                        d.deviceId === editingDevice.deviceId ? updated : d,
-                    ),
-                );
+                await deviceService.update(editingDevice.deviceId, deviceData);
             } else {
-                // Tạo mới
-                const created = await deviceService.create(deviceData);
-                setDevices((prev) => [...prev, created]);
+                await deviceService.create(deviceData);
             }
+            fetchDevices(pagination.currentPage);
+            fetchAllDevicesForHealthCard(); // Refresh health card after save
             handleCloseModal();
         } catch (err) {
             alert("Lưu thất bại. Vui lòng thử lại.");
@@ -133,19 +228,7 @@ export default function DevicesPage({ searchQuery }) {
         }
     };
 
-    // ── Lọc theo search ─────────────────────────────────────────────
-    const filtered = devices.filter((d) => {
-        const provinceName = getProvinceName(d.provinceId).toLowerCase();
-        const query = searchQuery.toLowerCase();
-
-        return (
-            d.deviceId.toLowerCase().includes(query) ||
-            provinceName.includes(query)
-        );
-    });
-
-    // ── Loading state ────────────────────────────────────────────────
-    if (loading) {
+    if (loading && devices.length === 0) {
         return (
             <main className="ml-64 p-10 bg-surface min-h-[calc(100vh-64px)] flex items-center justify-center">
                 <div className="text-center">
@@ -160,7 +243,6 @@ export default function DevicesPage({ searchQuery }) {
         );
     }
 
-    // ── Error state ──────────────────────────────────────────────────
     if (error) {
         return (
             <main className="ml-64 p-10 bg-surface min-h-[calc(100vh-64px)] flex items-center justify-center">
@@ -175,7 +257,7 @@ export default function DevicesPage({ searchQuery }) {
                         {error}
                     </p>
                     <button
-                        onClick={fetchDevices}
+                        onClick={() => fetchDevices(1)}
                         className="px-6 py-2.5 bg-primary text-white rounded-full text-sm font-bold hover:bg-primary/90 transition-colors"
                     >
                         Thử lại
@@ -187,7 +269,6 @@ export default function DevicesPage({ searchQuery }) {
 
     return (
         <main className="ml-64 p-10 bg-surface min-h-[calc(100vh-64px)]">
-            {/* Page Header */}
             <div className="flex justify-between items-end mb-12">
                 <div>
                     <h2 className="text-4xl font-extrabold tracking-tight text-on-surface mb-2">
@@ -200,31 +281,50 @@ export default function DevicesPage({ searchQuery }) {
                 </div>
                 <button
                     onClick={handleOpenAddModal}
-                    className="flex items-center gap-2 px-6 py-3.5 bg-gradient-to-br from-primary to-primary-container text-white rounded-full font-bold shadow-lg shadow-primary/20 hover:shadow-xl hover:-translate-y-0.5 transition-all"
+                    className="flex items-center gap-2 px-6 py-2.5 bg-gradient-to-br from-primary to-primary-container text-white rounded-full font-bold shadow-lg shadow-primary/20 hover:shadow-xl hover:-translate-y-0.5 transition-all whitespace-nowrap"
                 >
                     <span className="material-symbols-outlined">add</span>
-                    <span>Thêm thiết bị mới</span>
+                    <span>Thêm thiết bị</span>
                 </button>
             </div>
 
-            {/* Main Content Area */}
             <div className="flex flex-col gap-6">
-                <NetworkHealthCard devices={devices} />
-                <DeviceTable
-                    devices={filtered}
-                    onDelete={handleDelete}
-                    getProvinceName={getProvinceName}
-                    onEdit={handleOpenEditModal}
-                    deletingId={deletingId}
+                <NetworkHealthCard devices={allDevicesForHealthCard} />
+
+                <DeviceFilters
+                    filters={filters}
+                    onFilterChange={handleFilterChange}
+                    provinces={userProvinces}
+                    searchQuery={searchQuery}
+                    onSearchChange={setSearchQuery}
+                    user={currentUser}
                 />
+                <div className="bg-surface-container-lowest rounded-3xl overflow-hidden shadow-sm border border-outline-variant/10">
+                    <DeviceTable
+                        devices={devices}
+                        onDelete={handleDelete}
+                        getProvinceName={getProvinceName}
+                        onEdit={handleOpenEditModal}
+                        deletingId={deletingId}
+                    />
+
+                    <HistoryPagination
+                        currentPage={pagination.currentPage}
+                        totalPages={pagination.totalPages}
+                        total={pagination.totalCount}
+                        pageSize={pagination.pageSize}
+                        onPageChange={(page) =>
+                            setPagination((p) => ({ ...p, currentPage: page }))
+                        }
+                    />
+                </div>
             </div>
 
-            {/* Add/Edit Device Modal */}
             {isModalOpen && (
                 <AddEditDeviceModal
                     key={editingDevice?.deviceId || "new"}
                     device={editingDevice}
-                    provinces={provinces}
+                    provinces={userProvinces}
                     onClose={handleCloseModal}
                     onSave={handleSaveDevice}
                     submitting={submitting}

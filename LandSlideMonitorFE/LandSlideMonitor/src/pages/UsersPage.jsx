@@ -3,9 +3,10 @@ import userService from "../services/userService";
 import { getProvinces } from "../services/provinceService";
 import UserTable from "../components/users/UserTable";
 import AddEditUserModal from "../components/users/AddEditUserModal";
-import HistoryPagination from "../components/history/HistoryPagination"; // Reusing pagination component
+import HistoryPagination from "../components/history/HistoryPagination";
+import UserFilters from "../components/users/UserFilters";
 
-export default function UsersPage({ searchQuery }) {
+export default function UsersPage() {
     const [users, setUsers] = useState([]);
     const [provinces, setProvinces] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -13,6 +14,12 @@ export default function UsersPage({ searchQuery }) {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingUser, setEditingUser] = useState(null);
     const [submitting, setSubmitting] = useState(false);
+
+    const [filters, setFilters] = useState({
+        username: "",
+        provinceId: "all",
+        role: "all",
+    });
 
     const [pagination, setPagination] = useState({
         currentPage: 1,
@@ -29,8 +36,18 @@ export default function UsersPage({ searchQuery }) {
                 const params = {
                     pageNumber: page,
                     pageSize: pagination.pageSize,
-                    username: searchQuery,
+                    username: filters.username || null,
+                    role: filters.role !== "all" ? filters.role : null,
+                    provinceId:
+                        filters.provinceId !== "all"
+                            ? parseInt(filters.provinceId)
+                            : null,
                 };
+                // Remove null or undefined params
+                Object.keys(params).forEach(
+                    (key) => params[key] == null && delete params[key],
+                );
+
                 const result = await userService.getUsers(params);
                 setUsers(result.data);
                 setPagination({
@@ -48,13 +65,23 @@ export default function UsersPage({ searchQuery }) {
                 setLoading(false);
             }
         },
-        [pagination.pageSize, searchQuery],
+        [pagination.pageSize, filters], // Depend on filters now
     );
 
     useEffect(() => {
+        const timeoutId = setTimeout(() => {
+            setPagination((p) => ({ ...p, currentPage: 1 }));
+        }, 300);
+        return () => clearTimeout(timeoutId);
+    }, [filters]);
+
+    useEffect(() => {
         fetchUsers(pagination.currentPage);
+    }, [pagination.currentPage, fetchUsers]);
+
+    useEffect(() => {
         fetchProvinces();
-    }, [pagination.currentPage, searchQuery, fetchUsers]);
+    }, []);
 
     const fetchProvinces = async () => {
         try {
@@ -63,6 +90,10 @@ export default function UsersPage({ searchQuery }) {
         } catch (err) {
             console.error("Lấy danh sách tỉnh thành thất bại", err);
         }
+    };
+
+    const handleFilterChange = (name, value) => {
+        setFilters((prev) => ({ ...prev, [name]: value }));
     };
 
     const getProvinceName = (id) => {
@@ -143,7 +174,7 @@ export default function UsersPage({ searchQuery }) {
 
     return (
         <main className="ml-64 p-10 bg-surface min-h-[calc(100vh-64px)]">
-            <div className="flex justify-between items-end mb-12">
+            <div className="flex justify-between items-end mb-6">
                 <div>
                     <h2 className="text-4xl font-extrabold tracking-tight text-on-surface mb-2">
                         Quản lý người dùng
@@ -160,6 +191,12 @@ export default function UsersPage({ searchQuery }) {
                     <span>Tạo người dùng mới</span>
                 </button>
             </div>
+
+            <UserFilters
+                filters={filters}
+                onFilterChange={handleFilterChange}
+                provinces={provinces}
+            />
 
             <div className="bg-surface-container-lowest rounded-3xl overflow-hidden shadow-sm border border-outline-variant/10">
                 <UserTable

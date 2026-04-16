@@ -29,7 +29,6 @@ public class SensorDataService : ISensorDataService
         var device = await _db.Devices.FindAsync(dto.DeviceId);
         if (device == null)
             return null;
-
         // update device
         device.Status = DeviceStatus.Online;
         device.LastSeen = dto.Timestamp;
@@ -87,8 +86,8 @@ public class SensorDataService : ISensorDataService
 
         return await query.ToPagedResultAsync(param.PageNumber, param.PageSize);
     }
-    public async Task<IEnumerable<SensorData>> GetLatestForAllDevicesAsync()
+    public async Task<IEnumerable<SensorData>> GetLatestForAllDevicesAsync(int? provinceId = null)
     {
-        return await _sensorDataRepo.GetLatestForAllDevicesAsync();
+        return await _sensorDataRepo.GetLatestForAllDevicesAsync(provinceId);
     }
 }

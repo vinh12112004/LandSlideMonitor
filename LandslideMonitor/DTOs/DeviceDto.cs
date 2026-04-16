@@ -1,3 +1,4 @@
+using LandslideMonitor.Helpers;
 using LandslideMonitor.Models;
 
 namespace LandslideMonitor.DTOs;
@@ -25,4 +26,11 @@ public class UpdateDeviceDto
     public string Name { get; set; }
     public int ProvinceId { get; set; }
     public DeviceStatus Status { get; set; }
+}
+
+public class DeviceFilterParams : PaginationParams
+{
+    public string? SearchTerm { get; set; }
+    public int? ProvinceId { get; set; }
+    public DeviceStatus? Status { get; set; }
 }

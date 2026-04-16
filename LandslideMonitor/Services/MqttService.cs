@@ -52,9 +52,10 @@ public class MqttService : BackgroundService
                 using var scope = _scopeFactory.CreateScope();
                 var deviceService = scope.ServiceProvider.GetRequiredService<IDeviceService>();
                 var sensorService = scope.ServiceProvider.GetRequiredService<ISensorDataService>();
-                var device = await deviceService.GetByIdAsync(dto.DeviceId);
+                var device = await deviceService.GetByIdAsync(dto.DeviceId,true);
                 if (device == null)
                 {
+                    Console.WriteLine(dto.DeviceId);
                     Console.WriteLine("Device not found → ignore");
                     return;
                 }

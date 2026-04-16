@@ -7,5 +7,5 @@ public interface ISensorDataRepository
     Task<List<SensorData>> GetLatestAsync(int limit);
     Task AddAsync(SensorData data);
     public IQueryable<SensorData> GetQuery();
-    Task<IEnumerable<SensorData>> GetLatestForAllDevicesAsync();
+    Task<IEnumerable<SensorData>> GetLatestForAllDevicesAsync(int? provinceId = null);
 }

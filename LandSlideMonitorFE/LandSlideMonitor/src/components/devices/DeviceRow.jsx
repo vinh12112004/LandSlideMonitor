@@ -12,10 +12,10 @@ export default function DeviceRow({
 
     return (
         <tr
-            className={`group hover:bg-surface-container-low transition-colors rounded-2xl ${isDeleting ? "opacity-50" : ""}`}
+            className={`group hover:bg-surface-container-low transition-colors border-b border-outline-variant/20 ${isDeleting ? "opacity-50" : ""}`}
         >
             {/* Name */}
-            <td className="px-6 py-5 rounded-l-2xl">
+            <td className="px-6 py-4">
                 <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-400">
                         <span className="material-symbols-outlined">
@@ -27,14 +27,14 @@ export default function DeviceRow({
             </td>
 
             {/* Device ID */}
-            <td className="px-6 py-5">
+            <td className="px-6 py-4">
                 <p className="text-xs text-on-surface-variant font-mono">
                     {device.deviceId}
                 </p>
             </td>
 
             {/* Province */}
-            <td className="px-6 py-5">
+            <td className="px-6 py-4">
                 <p className="text-sm text-on-surface-variant">
                     {device.provinceName
                         ? device.provinceName
@@ -43,17 +43,17 @@ export default function DeviceRow({
             </td>
 
             {/* Status */}
-            <td className="px-6 py-5 text-center">
+            <td className="px-6 py-4 text-center">
                 <StatusBadge status={device.status} />
             </td>
 
             {/* Last Seen */}
-            <td className="px-6 py-5 text-on-surface-variant font-medium">
+            <td className="px-6 py-4 text-on-surface-variant font-medium">
                 {formatRelativeTime(device.lastSeen)}
             </td>
 
             {/* Actions */}
-            <td className="px-6 py-5 text-right rounded-r-2xl">
+            <td className="px-6 py-4 text-right">
                 <button
                     onClick={() => onEdit(device)}
                     className="p-2 text-on-surface-variant hover:text-primary transition-colors"

@@ -21,8 +21,10 @@ const sensordataService = {
 
         return res.data;
     },
-    getLatestForAll: async () => {
-        const res = await api.get("/sensordata/latest");
+    getLatestForAll: async (provinceId) => {
+        const res = await api.get("/sensordata/latest-all", {
+            params: { provinceId },
+        });
         return res.data;
     },
 };

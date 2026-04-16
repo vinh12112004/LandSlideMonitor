@@ -39,6 +39,10 @@ export default function Sidebar({ onLogout, user }) {
                 {/* Navigation */}
                 <nav className="space-y-1 flex-grow">
                     {NAV_ITEMS.map((item) => {
+                        if (item.path === "/users" && user?.role !== "Admin") {
+                            return null;
+                        }
+
                         const isActive = location.pathname.startsWith(
                             item.path,
                         );

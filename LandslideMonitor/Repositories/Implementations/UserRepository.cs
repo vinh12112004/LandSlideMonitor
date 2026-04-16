@@ -56,6 +56,11 @@ public class UserRepository : IUserRepository
             query = query.Where(u => u.Role == filterParams.Role);
         }
 
+        if (filterParams.ProvinceId.HasValue)
+        {
+            query = query.Where(u => u.UserProvinces.Any(up => up.ProvinceId == filterParams.ProvinceId.Value));
+        }
+
         return await query.ToPagedResultAsync(filterParams.PageNumber, filterParams.PageSize);
     }
 }

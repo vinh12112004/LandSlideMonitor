@@ -3,25 +3,51 @@ import deviceService from "../services/deviceService";
 import sensordataService from "../services/sensordataService";
 import { injectMarkerStyles } from "../utils/map-helpers";
 import MapView from "../components/map/MapView";
+import { getProvinces } from "../services/provinceService";
+import ProvinceFilter from "../components/map/ProvinceFilter";
 
 export default function MapViewPage() {
     const [mapData, setMapData] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [provinces, setProvinces] = useState([]);
+    const [selectedProvince, setSelectedProvince] = useState("all");
 
     useEffect(() => {
-        injectMarkerStyles(); // Chèn CSS animation cho marker
+        injectMarkerStyles(); // Inject CSS animation for markers
 
+        const fetchProvinces = async () => {
+            try {
+                const data = await getProvinces();
+                setProvinces(data);
+            } catch (err) {
+                console.error("Failed to fetch provinces", err);
+            }
+        };
+
+        fetchProvinces();
+    }, []);
+
+    useEffect(() => {
         const fetchData = async () => {
             try {
                 setLoading(true);
                 setError(null);
 
-                const [devices, allLatestSensorData] = await Promise.all([
-                    deviceService.getAll(),
-                    sensordataService.getLatestForAll(),
-                ]);
+                const provinceId =
+                    selectedProvince === "all" ? null : selectedProvince;
 
+                const [devicesResponse, allLatestSensorData] =
+                    await Promise.all([
+                        deviceService.getAll({
+                            pageNumber: 1,
+                            pageSize: 9999,
+                            provinceId,
+                        }),
+                        sensordataService.getLatestForAll({ provinceId }),
+                    ]);
+
+                const devices = devicesResponse.data;
                 const sensorDataMap = new Map(
                     allLatestSensorData.map((data) => [data.deviceId, data]),
                 );
@@ -29,30 +55,30 @@ export default function MapViewPage() {
                 const mergedData = devices
                     .map((device) => {
                         const sensorData = sensorDataMap.get(device.deviceId);
-                        // Chỉ xử lý nếu có dữ liệu cảm biến và tọa độ hợp lệ
-                        if (
-                            sensorData &&
-                            sensorData.latitude &&
-                            sensorData.longitude
-                        ) {
+                        const latitude =
+                            sensorData?.latitude ?? device.lastLatitude;
+                        const longitude =
+                            sensorData?.longitude ?? device.lastLongitude;
+
+                        if (latitude && longitude) {
                             return {
                                 deviceId: device.deviceId,
                                 name: device.name,
-                                location: device.location,
+                                provinceName: device.provinceName,
                                 deviceStatus: device.status,
-                                latitude: sensorData.latitude,
-                                longitude: sensorData.longitude,
-                                soilMoisture: sensorData.soilMoisture,
-                                accelX: sensorData.accelX,
-                                accelY: sensorData.accelY,
-                                accelZ: sensorData.accelZ,
-                                timestamp: sensorData.timestamp,
-                                dataStatus: sensorData.status,
+                                latitude: latitude,
+                                longitude: longitude,
+                                soilMoisture: sensorData?.soilMoisture,
+                                accelX: sensorData?.accelX,
+                                accelY: sensorData?.accelY,
+                                accelZ: sensorData?.accelZ,
+                                timestamp: sensorData?.timestamp,
+                                dataStatus: sensorData?.status,
                             };
                         }
                         return null;
                     })
-                    .filter(Boolean); // Lọc bỏ các giá trị null
+                    .filter(Boolean);
 
                 setMapData(mergedData);
             } catch (err) {
@@ -64,7 +90,7 @@ export default function MapViewPage() {
         };
 
         fetchData();
-    }, []); // Chạy một lần khi component được mount
+    }, [selectedProvince]);
 
     if (loading) {
         return (
@@ -99,6 +125,11 @@ export default function MapViewPage() {
 
     return (
         <main className="ml-64 h-[calc(100vh-64px)]">
+            <ProvinceFilter
+                provinces={provinces}
+                selectedProvince={selectedProvince}
+                onProvinceChange={setSelectedProvince}
+            />
             <MapView mapData={mapData} />
         </main>
     );

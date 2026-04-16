@@ -1,12 +1,13 @@
 using LandslideMonitor.DTOs;
+using LandslideMonitor.Helpers;
 using LandslideMonitor.Models;
 
 namespace LandslideMonitor.Services.Interfaces;
 
 public interface IDeviceService
 {
-    Task<List<DeviceDto>> GetAllAsync();
-    Task<Device?> GetByIdAsync(string deviceId);
+    Task<PagedResult<DeviceDto>> GetAllAsync(DeviceFilterParams filterParams);
+    Task<Device?> GetByIdAsync(string deviceId, bool? isMqtt = false);
     Task<Device?> CreateAsync(CreateDeviceDto dto);
     Task<bool> DeleteAsync(string deviceId);
     Task<Device?> UpdateAsync(string deviceId, UpdateDeviceDto dto);

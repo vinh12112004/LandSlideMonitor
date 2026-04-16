@@ -1,11 +1,14 @@
 using LandslideMonitor.Data;
 using LandslideMonitor.DTOs;
+using LandslideMonitor.Helpers;
 using LandslideMonitor.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace LandslideMonitor.Controllers;
 
 [ApiController]
+[Authorize]
 [Route("api/devices")]
 public class DeviceController : ControllerBase
 {
@@ -17,9 +20,9 @@ public class DeviceController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetDevices()
+    public async Task<ActionResult<PagedResult<DeviceDto>>> GetDevices([FromQuery] DeviceFilterParams filterParams)
     {
-        return Ok(await _service.GetAllAsync());
+        return Ok(await _service.GetAllAsync(filterParams));
     }
 
     [HttpGet("{deviceId}")]
