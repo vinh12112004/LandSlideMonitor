@@ -24,6 +24,7 @@ public class DeviceRepository : IDeviceRepository
     {
         var query = _db.Devices
             .Include(d => d.Province)
+            .Include(d => d.Sensors)
             .AsQueryable();
         var user = _httpContextAccessor.HttpContext?.User;
         if (user != null)
@@ -69,7 +70,9 @@ public class DeviceRepository : IDeviceRepository
 
     public async Task<Device?> GetByIdAsync(string deviceId, bool? isMqtt =false)
     {
-        var device = await _db.Devices.FindAsync(deviceId);
+        var device = await _db.Devices
+            .Include(d => d.Sensors)
+            .FirstOrDefaultAsync(d => d.DeviceId == deviceId);
 
         if (device == null) return null;
 

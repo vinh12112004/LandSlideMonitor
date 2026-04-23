@@ -1,3 +1,4 @@
+using System.Text.Json;
 using LandslideMonitor.Helpers;
 using LandslideMonitor.Models;
 
@@ -7,9 +8,7 @@ public class SensorDataDto
 {
     public string DeviceId { get; set; }
     public DateTime Timestamp { get; set; }
-    public double SoilMoisture { get; set; }
-
-    public AccelDto Accel { get; set; }
+    public JsonElement Data { get; set; }
     public GpsDto Gps { get; set; }
 }
 

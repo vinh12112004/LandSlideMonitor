@@ -13,6 +13,7 @@ public class DeviceDto
     public DateTime LastSeen { get; set; }
     public double? LastLatitude { get; set; }
     public double? LastLongitude { get; set; }
+    public ICollection<SensorDto> Sensors { get; set; }
 }
 public class CreateDeviceDto
 {

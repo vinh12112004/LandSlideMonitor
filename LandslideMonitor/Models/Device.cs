@@ -17,7 +17,7 @@ public class Device
     public int ProvinceId { get; set; }
     public Province Province { get; set; }
     public DateTime LastSeen { get; set; }
-
+    public ICollection<Sensor> Sensors { get; set; }
     public double? LastLatitude { get; set; }
     public double? LastLongitude { get; set; }
 }

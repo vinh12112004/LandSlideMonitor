@@ -1,3 +1,4 @@
+using AutoMapper;
 using LandslideMonitor.DTOs;
 using LandslideMonitor.Helpers;
 using LandslideMonitor.Models;
@@ -9,27 +10,20 @@ namespace LandslideMonitor.Services.Implementations;
 public class DeviceService : IDeviceService
 {
     private readonly IDeviceRepository _repo;
+    private readonly IMapper _mapper;
 
-    public DeviceService(IDeviceRepository repo)
+
+    public DeviceService(IDeviceRepository repo,  IMapper mapper)
     {
         _repo = repo;
+        _mapper = mapper;
     }
 
     public async Task<PagedResult<DeviceDto>> GetAllAsync(DeviceFilterParams filterParams)
     {
         var devicesPage = await _repo.GetAllAsync(filterParams);
 
-        var deviceDtos = devicesPage.Data.Select(d => new DeviceDto
-        {
-            DeviceId = d.DeviceId,
-            Name = d.Name,
-            Status = d.Status,
-            ProvinceId = d.ProvinceId,
-            ProvinceName = d.Province?.Name,
-            LastSeen = d.LastSeen,
-            LastLatitude = d.LastLatitude,
-            LastLongitude = d.LastLongitude
-        });
+        var deviceDtos = _mapper.Map<IEnumerable<DeviceDto>>(devicesPage.Data);
 
         return new PagedResult<DeviceDto>(
             deviceDtos,
@@ -39,12 +33,12 @@ public class DeviceService : IDeviceService
         );
     }
 
-    public async Task<Device?> GetByIdAsync(string deviceId, bool? isMqtt = false)
+    public async Task<DeviceDto?> GetByIdAsync(string deviceId, bool? isMqtt = false)
     {
-        return await _repo.GetByIdAsync(deviceId, isMqtt);
+        return _mapper.Map<DeviceDto>(await _repo.GetByIdAsync(deviceId, isMqtt));
     }
 
-    public async Task<Device?> CreateAsync(CreateDeviceDto dto)
+    public async Task<DeviceDto?> CreateAsync(CreateDeviceDto dto)
     {
         if (!_repo.HasAccessToProvince(dto.ProvinceId))
             throw new UnauthorizedAccessException("Không có quyền tạo thiết bị ở tỉnh này");
@@ -64,7 +58,7 @@ public class DeviceService : IDeviceService
         await _repo.AddAsync(device);
         await _repo.SaveChangesAsync();
 
-        return device;
+        return _mapper.Map<DeviceDto>(device);
     }
 
     public async Task<bool> DeleteAsync(string deviceId)
@@ -79,9 +73,14 @@ public class DeviceService : IDeviceService
         return true;
     }
 
-    public async Task<Device> UpdateStatusAsync(string deviceId, DeviceStatus status, DateTime lastSeen, double? lat, double? lon)
+    public async Task<DeviceDto?> UpdateStatusAsync(
+        string deviceId,
+        DeviceStatus status,
+        DateTime lastSeen,
+        double? lat,
+        double? lon)
     {
-        var device = await _repo.GetByIdAsync(deviceId,true);
+        var device = await _repo.GetByIdAsync(deviceId, true);
         if (device == null)
             return null;
 
@@ -101,14 +100,14 @@ public class DeviceService : IDeviceService
             await _repo.SaveChangesAsync();
         }
 
-        return device;
+        return _mapper.Map<DeviceDto>(device);
     }
 
     public async Task<List<Device>> GetOfflineCandidatesAsync(DateTime threshold)
     {
         return await _repo.GetOfflineCandidatesAsync(threshold);
     }
-    public async Task<Device?> UpdateAsync(string deviceId, UpdateDeviceDto dto)
+    public async Task<DeviceDto?> UpdateAsync(string deviceId, UpdateDeviceDto dto)
     {
         var device = await _repo.GetByIdAsync(deviceId);
         if (device == null)
@@ -121,6 +120,6 @@ public class DeviceService : IDeviceService
         await _repo.UpdateAsync(device);
         await _repo.SaveChangesAsync();
 
-        return device;
+        return _mapper.Map<DeviceDto>(device);
     }
 }

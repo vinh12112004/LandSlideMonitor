@@ -11,6 +11,8 @@ public class AppDbContext : DbContext
     public DbSet<User> Users { get; set; }
     public DbSet<UserProvince> UserProvinces { get; set; }
     public DbSet<RefreshToken> RefreshTokens { get; set; }
+    public DbSet<Sensor> Sensors { get; set; }
+    public DbSet<Threshold> Thresholds { get; set; }
 
     public AppDbContext(DbContextOptions<AppDbContext> options)
         : base(options)
@@ -32,6 +34,17 @@ public class AppDbContext : DbContext
             .OnDelete(DeleteBehavior.Restrict);
         modelBuilder.Entity<UserProvince>()
             .HasKey(up => new { up.UserId, up.ProvinceId });
+        modelBuilder.Entity<SensorData>()
+            .HasIndex(sd => new { sd.DeviceId, sd.Timestamp });
+        modelBuilder.Entity<Sensor>(entity =>
+        {
+            entity.HasKey(s => s.Id);
 
+            entity.HasOne(s => s.Device)
+                .WithMany(d => d.Sensors)
+                .HasForeignKey(s => s.DeviceId)
+                .OnDelete(DeleteBehavior.Cascade);
+            entity.Property(s => s.SensorCode).IsRequired();
+        });
     }
 }

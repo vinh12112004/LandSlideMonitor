@@ -77,12 +77,7 @@ public class MqttService : BackgroundService
                     id = saved.id,
                     deviceId = saved.DeviceId,
                     timestamp = saved.Timestamp,
-                    soilMoisture = saved.SoilMoisture,
-                    accelX = saved.AccelX,
-                    accelY = saved.AccelY,
-                    accelZ = saved.AccelZ,
-                    latitude = saved.Latitude,
-                    longitude = saved.Longitude,
+                    data = saved.JsonData,
                     status = saved.Status
                 });
                 if (wasOffline && updatedDevice.Status == DeviceStatus.Online)

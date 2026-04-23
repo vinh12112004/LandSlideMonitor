@@ -81,7 +81,8 @@ builder.Services.AddSwaggerGen(options =>
 // DB
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("Default")));
-
+// Automapper
+builder.Services.AddAutoMapper(typeof(MappingProfile));
 // MQTT worker
 builder.Services.AddHostedService<MqttService>();
 builder.Services.AddHostedService<DeviceStatusService>();
@@ -101,7 +102,8 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<JwtService>();
 builder.Services.AddScoped<IUserService, UserService>();
-
+builder.Services.AddScoped<ISensorRepository, SensorRepository>();
+builder.Services.AddScoped<IThresholdRepository, ThresholdRepository>();
 var app = builder.Build();
 app.UseMiddleware<ExceptionMiddleware>();
 app.MapHub<SensorHub>("/sensorHub");
