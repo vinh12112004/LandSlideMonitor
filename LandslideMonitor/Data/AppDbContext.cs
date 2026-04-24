@@ -13,6 +13,9 @@ public class AppDbContext : DbContext
     public DbSet<RefreshToken> RefreshTokens { get; set; }
     public DbSet<Sensor> Sensors { get; set; }
     public DbSet<Threshold> Thresholds { get; set; }
+    public DbSet<ChannelDefinition> SensorTypes { get; set; }
+    public DbSet<ChannelDefinition> ChannelDefinitions { get; set; }
+    public DbSet<SensorChannel> SensorChannels { get; set; }
 
     public AppDbContext(DbContextOptions<AppDbContext> options)
         : base(options)
@@ -45,6 +48,35 @@ public class AppDbContext : DbContext
                 .HasForeignKey(s => s.DeviceId)
                 .OnDelete(DeleteBehavior.Cascade);
             entity.Property(s => s.SensorCode).IsRequired();
+        });
+        modelBuilder.Entity<ChannelDefinition>(entity =>
+        {
+            entity.HasKey(x => x.Id);
+            entity.Property(x => x.Name).IsRequired();
+            entity.Property(x => x.DataKey).IsRequired();
+            entity.HasIndex(x => x.DataKey).IsUnique();
+        });
+        modelBuilder.Entity<ChannelDefinition>()
+            .HasIndex(x => x.DataKey)
+            .IsUnique();
+
+        modelBuilder.Entity<SensorChannel>()
+            .HasIndex(x => new { x.SensorId, x.ChannelDefinitionId })
+            .IsUnique();
+
+        modelBuilder.Entity<Sensor>()
+            .HasMany(s => s.SensorChannels)
+            .WithOne(sc => sc.Sensor)
+            .HasForeignKey(sc => sc.SensorId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<Threshold>(entity =>
+        {
+            entity.HasKey(t => t.Id);
+            entity.HasOne(t => t.channelDefinition)
+                .WithMany()
+                .HasForeignKey(t => t.channelDefinitionid)
+                .OnDelete(DeleteBehavior.Cascade);
         });
     }
 }

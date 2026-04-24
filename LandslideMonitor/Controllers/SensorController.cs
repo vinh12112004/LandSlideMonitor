@@ -1,3 +1,4 @@
+using AutoMapper;
 using LandslideMonitor.DTOs;
 using LandslideMonitor.Models;
 using LandslideMonitor.Repositories.Interfaces;
@@ -13,93 +14,70 @@ namespace LandslideMonitor.Controllers
     public class SensorController : ControllerBase
     {
         private readonly ISensorRepository _sensorRepository;
+        private readonly IMapper _mapper;
 
-        public SensorController(ISensorRepository sensorRepository)
+        public SensorController(ISensorRepository sensorRepository, IMapper mapper)
         {
             _sensorRepository = sensorRepository;
+            _mapper = mapper;
         }
 
         [HttpGet]
         public async Task<ActionResult<IEnumerable<SensorDto>>> GetSensors()
         {
             var sensors = await _sensorRepository.GetSensorsAsync();
-            var sensorDtos = sensors.Select(s => new SensorDto
-            {
-                Id = s.Id,
-                DeviceId = s.DeviceId,
-                Name = s.Name,
-                Type = s.Type,
-                SensorCode = s.SensorCode,
-                Status = s.Status
-            });
-            return Ok(sensorDtos);
+            var dtos = _mapper.Map<IEnumerable<SensorDto>>(sensors);
+            return Ok(dtos);
         }
 
         [HttpGet("{id}")]
         public async Task<ActionResult<SensorDto>> GetSensor(int id)
         {
             var sensor = await _sensorRepository.GetSensorByIdAsync(id);
-
             if (sensor == null)
             {
                 return NotFound();
             }
 
-            var sensorDto = new SensorDto
-            {
-                Id = sensor.Id,
-                DeviceId = sensor.DeviceId,
-                Name = sensor.Name,
-                Type = sensor.Type,
-                SensorCode = sensor.SensorCode,
-                Status = sensor.Status
-            };
-
-            return Ok(sensorDto);
+            var dto = _mapper.Map<SensorDto>(sensor);
+            return Ok(dto);
         }
 
         [HttpPost]
-        public async Task<ActionResult<SensorDto>> CreateSensor(CreateSensorDto createSensorDto)
+        public async Task<ActionResult<SensorDto>> CreateSensor(CreateSensorDto dto)
         {
-            var sensor = new Sensor
+            var sensor = _mapper.Map<Sensor>(dto);
+            sensor.Status = SensorStatus.Inactive;
+
+            if (dto.ChannelDefinitionIds != null && dto.ChannelDefinitionIds.Count > 0)
             {
-                DeviceId = createSensorDto.DeviceId,
-                Name = createSensorDto.Name,
-                Type = createSensorDto.Type,
-                SensorCode = createSensorDto.SensorCode,
-                Status = SensorStatus.Inactive
-            };
+                sensor.SensorChannels = dto.ChannelDefinitionIds
+                    .Distinct()
+                    .Select(id => new SensorChannel
+                    {
+                        ChannelDefinitionId = id
+                    })
+                    .ToList();
+            }
 
             await _sensorRepository.CreateSensorAsync(sensor);
 
-            var sensorDto = new SensorDto
-            {
-                Id = sensor.Id,
-                DeviceId = sensor.DeviceId,
-                Name = sensor.Name,
-                Type = sensor.Type,
-                SensorCode = sensor.SensorCode,
-                Status = sensor.Status
-            };
-
-            return CreatedAtAction(nameof(GetSensor), new { id = sensor.Id }, sensorDto);
+            var resultDto = _mapper.Map<SensorDto>(sensor);
+            return CreatedAtAction(nameof(GetSensor), new { id = sensor.Id }, resultDto);
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateSensor(int id, UpdateSensorDto updateSensorDto)
+        public async Task<IActionResult> UpdateSensor(int id, UpdateSensorDto dto)
         {
             var sensor = await _sensorRepository.GetSensorByIdAsync(id);
-
             if (sensor == null)
             {
                 return NotFound();
             }
 
-            sensor.Name = updateSensorDto.Name;
-            sensor.Status = updateSensorDto.Status;
+            _mapper.Map(dto, sensor);
 
             await _sensorRepository.UpdateSensorAsync(sensor);
-
             return NoContent();
         }
 
@@ -113,7 +91,6 @@ namespace LandslideMonitor.Controllers
             }
 
             await _sensorRepository.DeleteSensorAsync(id);
-
             return NoContent();
         }
     }

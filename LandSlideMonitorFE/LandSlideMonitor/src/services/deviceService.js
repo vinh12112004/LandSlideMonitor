@@ -22,6 +22,10 @@ const deviceService = {
         const res = await api.delete(`/devices/${id}`);
         return res.data;
     },
+    getById: async (id) => {
+        const res = await api.get(`/devices/${id}`);
+        return res.data;
+    },
 };
 
 export default deviceService;

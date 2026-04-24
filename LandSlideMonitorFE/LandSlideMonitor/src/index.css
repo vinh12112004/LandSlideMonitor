@@ -65,6 +65,10 @@
     --radius-lg: 0.5rem;
     --radius-xl: 0.75rem;
     --radius-full: 9999px;
+    --color-background-primary: var(--color-surface-container-lowest);
+    --color-border-tertiary: var(--color-outline-variant);
+    --color-text-primary: var(--color-on-surface);
+    --color-text-secondary: var(--color-on-surface-variant);
 }
 
 body {

@@ -104,6 +104,9 @@ builder.Services.AddScoped<JwtService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ISensorRepository, SensorRepository>();
 builder.Services.AddScoped<IThresholdRepository, ThresholdRepository>();
+builder.Services.AddScoped<IChannelDefinitionRepository, ChannelDefinitionRepository>();
+builder.Services.AddScoped<IChannelDefinitionService, ChannelDefinitionService>();
+
 var app = builder.Build();
 app.UseMiddleware<ExceptionMiddleware>();
 app.MapHub<SensorHub>("/sensorHub");

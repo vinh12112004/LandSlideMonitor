@@ -1,15 +1,10 @@
 import StatusBadge from "../ui/StatusBadge";
 import { formatRelativeTime } from "../../utils/time";
-
-export default function DeviceRow({
-    device,
-    onDelete,
-    onEdit,
-    deletingId,
-    getProvinceName,
-}) {
+import { useNavigate } from "react-router-dom";
+export default function DeviceRow({ device, onDelete, onEdit, deletingId }) {
     const isDeleting = deletingId === device.deviceId;
-
+    const navigate = useNavigate();
+    console.log("Rendering DeviceRow for device:", device);
     return (
         <tr
             className={`group hover:bg-surface-container-low transition-colors border-b border-outline-variant/20 ${isDeleting ? "opacity-50" : ""}`}
@@ -38,7 +33,7 @@ export default function DeviceRow({
                 <p className="text-sm text-on-surface-variant">
                     {device.provinceName
                         ? device.provinceName
-                        : getProvinceName(device.provinceId)}
+                        : "Unknown Province"}
                 </p>
             </td>
 
@@ -71,6 +66,19 @@ export default function DeviceRow({
                         className={`material-symbols-outlined ${isDeleting ? "animate-spin" : ""}`}
                     >
                         {isDeleting ? "progress_activity" : "delete_outline"}
+                    </span>
+                </button>
+                <button
+                    onClick={() =>
+                        navigate(`/devices/${device.deviceId}`, {
+                            state: { device },
+                        })
+                    }
+                    className="p-2 hover:bg-primary/10 text-primary rounded-full transition-colors"
+                    title="Xem chi tiết sensor"
+                >
+                    <span className="material-symbols-outlined">
+                        visibility
                     </span>
                 </button>
             </td>

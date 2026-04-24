@@ -4,6 +4,7 @@ using LandslideMonitor.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace LandslideMonitor.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260423220226_AddThresholdDataKey")]
+    partial class AddThresholdDataKey
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -21,34 +24,6 @@ namespace LandslideMonitor.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
-
-            modelBuilder.Entity("LandslideMonitor.Models.ChannelDefinition", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("DataKey")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("UnitSymbol")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("DataKey")
-                        .IsUnique();
-
-                    b.ToTable("ChannelDefinition");
-                });
 
             modelBuilder.Entity("LandslideMonitor.Models.Device", b =>
                 {
@@ -149,35 +124,14 @@ namespace LandslideMonitor.Migrations
                     b.Property<int>("Status")
                         .HasColumnType("int");
 
+                    b.Property<int>("Type")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
 
                     b.HasIndex("DeviceId");
 
                     b.ToTable("Sensors");
-                });
-
-            modelBuilder.Entity("LandslideMonitor.Models.SensorChannel", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("ChannelDefinitionId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("SensorId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ChannelDefinitionId");
-
-                    b.HasIndex("SensorId", "ChannelDefinitionId")
-                        .IsUnique();
-
-                    b.ToTable("SensorChannels");
                 });
 
             modelBuilder.Entity("LandslideMonitor.Models.SensorData", b =>
@@ -217,22 +171,23 @@ namespace LandslideMonitor.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<byte>("Level")
-                        .HasColumnType("tinyint");
+                    b.Property<int>("ActionType")
+                        .HasColumnType("int");
 
-                    b.Property<string>("Note")
+                    b.Property<string>("DataKey")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<double>("ThresholdValue")
+                    b.Property<double>("MaxValue")
                         .HasColumnType("float");
 
-                    b.Property<int>("channelDefinitionid")
+                    b.Property<double>("MinValue")
+                        .HasColumnType("float");
+
+                    b.Property<int>("SensorType")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("channelDefinitionid");
 
                     b.ToTable("Thresholds");
                 });
@@ -310,36 +265,6 @@ namespace LandslideMonitor.Migrations
                     b.Navigation("Device");
                 });
 
-            modelBuilder.Entity("LandslideMonitor.Models.SensorChannel", b =>
-                {
-                    b.HasOne("LandslideMonitor.Models.ChannelDefinition", "ChannelDefinition")
-                        .WithMany()
-                        .HasForeignKey("ChannelDefinitionId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("LandslideMonitor.Models.Sensor", "Sensor")
-                        .WithMany("SensorChannels")
-                        .HasForeignKey("SensorId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("ChannelDefinition");
-
-                    b.Navigation("Sensor");
-                });
-
-            modelBuilder.Entity("LandslideMonitor.Models.Threshold", b =>
-                {
-                    b.HasOne("LandslideMonitor.Models.ChannelDefinition", "channelDefinition")
-                        .WithMany()
-                        .HasForeignKey("channelDefinitionid")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("channelDefinition");
-                });
-
             modelBuilder.Entity("LandslideMonitor.Models.UserProvince", b =>
                 {
                     b.HasOne("LandslideMonitor.Models.Province", "Province")
@@ -369,11 +294,6 @@ namespace LandslideMonitor.Migrations
                     b.Navigation("Devices");
 
                     b.Navigation("UserProvinces");
-                });
-
-            modelBuilder.Entity("LandslideMonitor.Models.Sensor", b =>
-                {
-                    b.Navigation("SensorChannels");
                 });
 
             modelBuilder.Entity("LandslideMonitor.Models.User", b =>

@@ -1,12 +1,6 @@
 import DeviceRow from "./DeviceRow";
 
-export default function DeviceTable({
-    devices,
-    onDelete,
-    onEdit,
-    deletingId,
-    getProvinceName,
-}) {
+export default function DeviceTable({ devices, onDelete, onEdit, deletingId }) {
     return (
         <div className="col-span-12 lg:col-span-8 bg-surface-container-lowest rounded-3xl p-4 shadow-sm">
             <div className="overflow-x-auto">
@@ -41,7 +35,6 @@ export default function DeviceTable({
                                     onDelete={onDelete}
                                     onEdit={onEdit}
                                     deletingId={deletingId}
-                                    getProvinceName={getProvinceName}
                                 />
                             ))
                         )}

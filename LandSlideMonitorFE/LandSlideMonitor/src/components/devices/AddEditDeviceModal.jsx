@@ -72,8 +72,8 @@ export default function AddEditDeviceModal({
           formData.provinceId;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm">
-            <div className="bg-white rounded-3xl p-8 w-full max-w-md shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+            <div className="bg-white/100 opacity-100 z-50 rounded-3xl p-8 w-full max-w-md shadow-2xl">
                 <h3 className="text-xl font-extrabold mb-6">
                     {isEditMode ? "Chỉnh sửa thiết bị" : "Thêm thiết bị mới"}
                 </h3>

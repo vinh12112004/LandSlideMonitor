@@ -9,7 +9,8 @@ import MapViewPage from "./pages/MapViewPage";
 import LoginPage from "./pages/LoginPage";
 import { initSignalR } from "./services/signalrInit";
 import UsersPage from "./pages/UsersPage";
-
+import DeviceDetailPage from "./pages/DeviceDetailPage";
+import ThresholdsPage from "./pages/ThresholdsPage";
 // Placeholder
 function PlaceholderPage({ title }) {
     return (
@@ -57,6 +58,11 @@ function MainLayout({ onLogout, user }) {
                         )
                     }
                 />
+                <Route
+                    path="/devices/:deviceId"
+                    element={<DeviceDetailPage />}
+                />
+                <Route path="/thresholds" element={<ThresholdsPage />} />
                 <Route
                     path="*"
                     element={<Navigate to="/monitoring" replace />}

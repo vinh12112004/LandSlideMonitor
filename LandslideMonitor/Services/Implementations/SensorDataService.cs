@@ -28,80 +28,89 @@ public class SensorDataService : ISensorDataService
 
     public async Task<SensorData> ProcessSensorDataAsync(SensorDataDto dto)
     {
-        // 1. Lấy thông tin Device kèm danh sách Sensor của nó
+        // 1. Lấy Device kèm SensorChannels và ChannelDefinition
         var device = await _db.Devices
             .Include(d => d.Sensors)
+                .ThenInclude(s => s.SensorChannels)
+                    .ThenInclude(sc => sc.ChannelDefinition)
             .FirstOrDefaultAsync(x => x.DeviceId == dto.DeviceId);
 
         if (device == null) return null;
 
-        // 2. Lấy toàn bộ Threshold chung (Nên dùng Cache ở đây nếu dự án thực tế)
+        // 2. Lấy toàn bộ Threshold
         var allThresholds = await _db.Thresholds.ToListAsync();
 
-        // 3. Tính toán Status tổng thể và cập nhật trạng thái từng Sensor
+        // 3. Tính recordStatus và cập nhật Sensor.Status
         var recordStatus = DataStatus.Normal;
-        
+
         foreach (var sensor in device.Sensors)
         {
-            // Thử lấy giá trị từ JSON dựa trên SensorCode (ví dụ: "soil_m")
-            if (dto.Data.TryGetProperty(sensor.SensorCode, out var property))
+            // Mặc định nếu không thấy kênh hợp lệ
+            if (sensor.SensorChannels == null || sensor.SensorChannels.Count == 0)
             {
+                sensor.Status = SensorStatus.Missing;
+                continue;
+            }
+
+            var sensorLevel = (byte)0;
+
+            foreach (var channel in sensor.SensorChannels)
+            {
+                var dataKey = channel.ChannelDefinition?.DataKey;
+                if (string.IsNullOrWhiteSpace(dataKey))
+                {
+                    sensor.Status = SensorStatus.Missing;
+                    continue;
+                }
+
+                if (!dto.Data.TryGetProperty(dataKey, out var property))
+                {
+                    sensor.Status = SensorStatus.Missing;
+                    continue;
+                }
+
                 if (property.ValueKind == JsonValueKind.Null)
                 {
-                    sensor.Status = SensorStatus.Error; // STM32 gửi null như đã bàn
+                    sensor.Status = SensorStatus.Error;
                     continue;
                 }
 
                 double val = property.GetDouble();
                 sensor.Status = SensorStatus.Active;
 
-                // Lấy ngưỡng chung cho loại cảm biến này
-                var thresholdsForType = allThresholds.Where(t => t.SensorType == sensor.Type);
-                
-                foreach (var th in thresholdsForType)
+                var thresholdsForChannel = allThresholds
+                    .Where(t => t.channelDefinitionid == channel.ChannelDefinitionId);
+
+                foreach (var th in thresholdsForChannel)
                 {
-                    if (val < th.MinValue || val > th.MaxValue)
+                    if (val >= th.ThresholdValue && th.Level > sensorLevel)
                     {
-                        // Nếu vượt ngưỡng Alert (2) thì ưu tiên cao nhất
-                        if (th.ActionType == DataStatus.Alert) recordStatus = DataStatus.Alert;
-                        // Nếu chỉ là Warning (1) và hiện tại chưa bị Alert thì set Warning
-                        else if (th.ActionType == DataStatus.Warning && recordStatus != DataStatus.Alert)
-                            recordStatus = DataStatus.Warning;
+                        sensorLevel = th.Level;
                     }
                 }
             }
-            else
-            {
-                sensor.Status = SensorStatus.Missing; // Không có key trong JSON
-            }
+
+            if (sensorLevel >= 2)
+                recordStatus = DataStatus.Alert;
+            else if (sensorLevel == 1 && recordStatus != DataStatus.Alert)
+                recordStatus = DataStatus.Warning;
         }
 
-        // 4. Tạo entity SensorData để lưu vào lịch sử
+        // 4. Lưu SensorData
         var entity = new SensorData
         {
             DeviceId = dto.DeviceId,
             Timestamp = dto.Timestamp,
-            // Lưu nguyên cục JSON thô vào DB
-            JsonData = dto.Data.GetRawText(), 
+            JsonData = dto.Data.GetRawText(),
             Status = recordStatus
         };
 
         _db.SensorDatas.Add(entity);
-        await _db.SaveChangesAsync(); // Lưu cả SensorStatus và SensorData
+        await _db.SaveChangesAsync();
 
         return entity;
     }
 
-    // private DataStatus CalculateStatus(SensorDataDto dto)
-    // {
-    //     if (dto.SoilMoisture > 40 && (dto.Accel?.X ?? 0) > 0.3)
-    //         return DataStatus.Alert;
-    //
-    //     if (dto.SoilMoisture > 25)
-    //         return DataStatus.Warning;
-    //
-    //     return DataStatus.Normal;
-    // }
     public async Task<PagedResult<SensorData>> GetPagedAsync(SensorQueryParams param)
     {
         var query = _sensorDataRepo.GetQuery();

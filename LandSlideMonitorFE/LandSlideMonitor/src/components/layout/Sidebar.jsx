@@ -13,6 +13,7 @@ export default function Sidebar({ onLogout, user }) {
         { path: "/history", label: "Lịch sử", icon: "history" },
         { path: "/devices", label: "Thiết bị", icon: "devices" },
         { path: "/users", label: "Người dùng", icon: "group" },
+        { path: "/thresholds", label: "Ngưỡng", icon: "tune" },
     ];
 
     const handleLogout = async () => {

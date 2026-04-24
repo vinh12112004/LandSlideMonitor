@@ -71,6 +71,7 @@ public class DeviceRepository : IDeviceRepository
     public async Task<Device?> GetByIdAsync(string deviceId, bool? isMqtt =false)
     {
         var device = await _db.Devices
+            .Include(d => d.Province)
             .Include(d => d.Sensors)
             .FirstOrDefaultAsync(d => d.DeviceId == deviceId);
 

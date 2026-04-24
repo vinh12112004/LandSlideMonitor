@@ -18,7 +18,7 @@ namespace LandslideMonitor.Repositories.Implementations
 
         public async Task<IEnumerable<Threshold>> GetThresholdsAsync()
         {
-            return await _context.Thresholds.ToListAsync();
+            return await _context.Thresholds.Include(t => t.channelDefinition).ToListAsync();
         }
 
         public async Task<Threshold> GetThresholdByIdAsync(int id)
