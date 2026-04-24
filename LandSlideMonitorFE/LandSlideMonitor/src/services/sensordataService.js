@@ -21,6 +21,20 @@ const sensordataService = {
 
         return res.data;
     },
+    getAlerts: async ({
+        dateFrom,
+        dateTo,
+        deviceId,
+        page = 1,
+        limit = 10,
+    } = {}) => {
+        const params = { pageNumber: page, pageSize: limit };
+        if (dateFrom) params.from = dateFrom;
+        if (dateTo) params.to = dateTo;
+        if (deviceId && deviceId !== "all") params.deviceId = deviceId;
+        const res = await api.get("/sensordata/alerts", { params });
+        return res.data;
+    },
     getLatestForAll: async (provinceId) => {
         const res = await api.get("/sensordata/latest-all", {
             params: { provinceId },

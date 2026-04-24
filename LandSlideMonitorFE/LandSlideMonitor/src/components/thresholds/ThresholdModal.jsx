@@ -2,8 +2,8 @@ import { useState } from "react";
 
 export default function ThresholdModal({
     editing,
-    sensorTypes,
-    actionTypes,
+    channelDefinitions,
+    levels,
     onClose,
     onSave,
     submitting,
@@ -11,10 +11,11 @@ export default function ThresholdModal({
     const isEdit = !!editing;
 
     const [form, setForm] = useState(() => ({
-        sensorTypeId: editing?.sensorTypeId ?? sensorTypes[0]?.id ?? "",
-        minValue: editing?.minValue ?? "",
-        maxValue: editing?.maxValue ?? "",
-        actionType: editing?.actionType ?? 1,
+        channelDefinitionId:
+            editing?.channelDefinitionId ?? channelDefinitions[0]?.id ?? "",
+        level: editing?.level ?? 1,
+        thresholdValue: editing?.thresholdValue ?? "",
+        note: editing?.note ?? "",
     }));
 
     const handleChange = (e) => {
@@ -22,7 +23,7 @@ export default function ThresholdModal({
         setForm((f) => ({
             ...f,
             [name]:
-                name === "sensorTypeId" || name === "actionType"
+                name === "channelDefinitionId" || name === "level"
                     ? parseInt(value, 10)
                     : value,
         }));
@@ -31,18 +32,17 @@ export default function ThresholdModal({
     const handleSubmit = (e) => {
         e.preventDefault();
         onSave({
-            sensorTypeId: form.sensorTypeId,
-            minValue: parseFloat(form.minValue),
-            maxValue: parseFloat(form.maxValue),
-            actionType: form.actionType,
+            channelDefinitionId: form.channelDefinitionId,
+            level: form.level,
+            thresholdValue: parseFloat(form.thresholdValue),
+            note: form.note.trim(),
         });
     };
 
     const isValid =
-        form.sensorTypeId &&
-        form.minValue !== "" &&
-        form.maxValue !== "" &&
-        parseFloat(form.minValue) < parseFloat(form.maxValue);
+        form.channelDefinitionId &&
+        form.thresholdValue !== "" &&
+        !Number.isNaN(parseFloat(form.thresholdValue));
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
@@ -54,68 +54,66 @@ export default function ThresholdModal({
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
                         <label className="text-xs font-bold block mb-1">
-                            SensorType
+                            Channel
                         </label>
                         <select
-                            name="sensorTypeId"
-                            value={form.sensorTypeId}
+                            name="channelDefinitionId"
+                            value={form.channelDefinitionId}
                             onChange={handleChange}
                             className="w-full border rounded-xl px-4 py-2.5 text-sm bg-white"
                             disabled={isEdit}
                         >
-                            {sensorTypes.map((t) => (
+                            {channelDefinitions.map((t) => (
                                 <option key={t.id} value={t.id}>
-                                    {t.name}
+                                    {t.name} ({t.dataKey})
                                 </option>
                             ))}
                         </select>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-3">
-                        <div>
-                            <label className="text-xs font-bold block mb-1">
-                                MinValue
-                            </label>
-                            <input
-                                name="minValue"
-                                type="number"
-                                value={form.minValue}
-                                onChange={handleChange}
-                                className="w-full border rounded-xl px-4 py-2.5 text-sm"
-                                required
-                            />
-                        </div>
-                        <div>
-                            <label className="text-xs font-bold block mb-1">
-                                MaxValue
-                            </label>
-                            <input
-                                name="maxValue"
-                                type="number"
-                                value={form.maxValue}
-                                onChange={handleChange}
-                                className="w-full border rounded-xl px-4 py-2.5 text-sm"
-                                required
-                            />
-                        </div>
+                    <div>
+                        <label className="text-xs font-bold block mb-1">
+                            Threshold Value
+                        </label>
+                        <input
+                            name="thresholdValue"
+                            type="number"
+                            value={form.thresholdValue}
+                            onChange={handleChange}
+                            className="w-full border rounded-xl px-4 py-2.5 text-sm"
+                            required
+                        />
                     </div>
 
                     <div>
                         <label className="text-xs font-bold block mb-1">
-                            ActionType
+                            Level
                         </label>
                         <select
-                            name="actionType"
-                            value={form.actionType}
+                            name="level"
+                            value={form.level}
                             onChange={handleChange}
                             className="w-full border rounded-xl px-4 py-2.5 text-sm bg-white"
                         >
-                            {actionTypes.map((t) => (
+                            {levels.map((t) => (
                                 <option key={t.value} value={t.value}>
                                     {t.label}
                                 </option>
                             ))}
                         </select>
+                    </div>
+
+                    <div>
+                        <label className="text-xs font-bold block mb-1">
+                            Note
+                        </label>
+                        <textarea
+                            name="note"
+                            value={form.note}
+                            onChange={handleChange}
+                            className="w-full border rounded-xl px-4 py-2.5 text-sm"
+                            rows={3}
+                        />
                     </div>
 
                     <div className="flex gap-3 pt-4">

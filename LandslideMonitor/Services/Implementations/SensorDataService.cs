@@ -42,6 +42,7 @@ public class SensorDataService : ISensorDataService
 
         // 3. Tính recordStatus và cập nhật Sensor.Status
         var recordStatus = DataStatus.Normal;
+        var reasons = new List<string>();
 
         foreach (var sensor in device.Sensors)
         {
@@ -57,25 +58,27 @@ public class SensorDataService : ISensorDataService
             foreach (var channel in sensor.SensorChannels)
             {
                 var dataKey = channel.ChannelDefinition?.DataKey;
+                var channelName = channel.ChannelDefinition?.Name ?? dataKey ?? "Unknown";
+
                 if (string.IsNullOrWhiteSpace(dataKey))
                 {
                     sensor.Status = SensorStatus.Missing;
                     continue;
                 }
 
-                if (!dto.Data.TryGetProperty(dataKey, out var property))
+                if (!dto.Data.TryGetValue(dataKey, out var valNullable))
                 {
                     sensor.Status = SensorStatus.Missing;
                     continue;
                 }
 
-                if (property.ValueKind == JsonValueKind.Null)
+                if (valNullable == null)
                 {
                     sensor.Status = SensorStatus.Error;
                     continue;
                 }
 
-                double val = property.GetDouble();
+                double val = valNullable.Value;
                 sensor.Status = SensorStatus.Active;
 
                 var thresholdsForChannel = allThresholds
@@ -87,6 +90,15 @@ public class SensorDataService : ISensorDataService
                     {
                         sensorLevel = th.Level;
                     }
+                }
+
+                if (sensorLevel == 1)
+                {
+                    reasons.Add($"{channelName} vượt ngưỡng cảnh báo");
+                }
+                else if (sensorLevel >= 2)
+                {
+                    reasons.Add($"{channelName} vượt ngưỡng báo động");
                 }
             }
 
@@ -101,8 +113,9 @@ public class SensorDataService : ISensorDataService
         {
             DeviceId = dto.DeviceId,
             Timestamp = dto.Timestamp,
-            JsonData = dto.Data.GetRawText(),
-            Status = recordStatus
+            JsonData = JsonSerializer.Serialize(dto.Data),
+            Status = recordStatus,
+            AlertReason = reasons.Count > 0 ? string.Join("; ", reasons) : null
         };
 
         _db.SensorDatas.Add(entity);
@@ -134,6 +147,29 @@ public class SensorDataService : ISensorDataService
 
         return await query.ToPagedResultAsync(param.PageNumber, param.PageSize);
     }
+
+    public async Task<PagedResult<SensorData>> GetAlertsPagedAsync(SensorQueryParams param)
+    {
+        var query = _sensorDataRepo.GetQuery();
+
+        if (!string.IsNullOrEmpty(param.DeviceId))
+            query = query.Where(x => x.DeviceId.Contains(param.DeviceId));
+
+        if (param.From.HasValue)
+            query = query.Where(x => x.Timestamp >= param.From.Value);
+
+        if (param.To.HasValue)
+        {
+            var nextDay = param.To.Value.Date.AddDays(1);
+            query = query.Where(x => x.Timestamp < nextDay);
+        }
+
+        query = query.Where(x => x.Status == DataStatus.Warning || x.Status == DataStatus.Alert)
+                     .OrderByDescending(x => x.Timestamp);
+
+        return await query.ToPagedResultAsync(param.PageNumber, param.PageSize);
+    }
+
     public async Task<IEnumerable<SensorData>> GetLatestForAllDevicesAsync(int? provinceId = null)
     {
         return await _sensorDataRepo.GetLatestForAllDevicesAsync(provinceId);

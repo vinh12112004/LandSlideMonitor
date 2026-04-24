@@ -6,7 +6,8 @@ import {
     updateSensor,
     deleteSensor,
 } from "../services/sensorService";
-import sensorTypeService from "../services/sensorTypeService";
+import channelDefinitionService from "../services/channelDefinitionService";
+import sensordataService from "../services/sensordataService";
 import DeviceDetailHeader from "../components/devices/DeviceDetailHeader";
 import DeviceStats from "../components/devices/DeviceStats";
 import SensorList from "../components/devices/SensorList";
@@ -14,58 +15,6 @@ import HistoryList from "../components/devices/HistoryList";
 import SensorModal from "../components/devices/SensorModal";
 import DeleteConfirmModal from "../components/devices/DeleteConfirmModal";
 import { DEVICE_STATUS_CONFIG } from "../constants/sensorConfig";
-
-// ── Mock data for History ──────────────────────────────────────────────────────
-const MOCK_HISTORY = [
-    {
-        id: 1,
-        deviceId: "DEV-001",
-        timestamp: "2026-04-23T14:30:00.000Z",
-        status: 0,
-        jsonData: JSON.stringify({
-            ACC: { x: 0.01, y: -0.02, z: 9.81 },
-            SM: 42.5,
-            RG: 0.0,
-            GNSS: { lat: 11.9465, lon: 108.4419 },
-        }),
-    },
-    {
-        id: 2,
-        deviceId: "DEV-001",
-        timestamp: "2026-04-23T14:15:00.000Z",
-        status: 1,
-        jsonData: JSON.stringify({
-            ACC: { x: 0.15, y: 0.08, z: 9.79 },
-            SM: 68.2,
-            RG: 2.4,
-            GNSS: { lat: 11.9465, lon: 108.4419 },
-        }),
-    },
-    {
-        id: 3,
-        deviceId: "DEV-001",
-        timestamp: "2026-04-23T14:00:00.000Z",
-        status: 2,
-        jsonData: JSON.stringify({
-            ACC: { x: 0.42, y: -0.31, z: 9.65 },
-            SM: 87.1,
-            RG: 8.7,
-            GNSS: { lat: 11.9466, lon: 108.442 },
-        }),
-    },
-    {
-        id: 4,
-        deviceId: "DEV-001",
-        timestamp: "2026-04-23T13:45:00.000Z",
-        status: 0,
-        jsonData: JSON.stringify({
-            ACC: { x: 0.02, y: -0.01, z: 9.81 },
-            SM: 40.1,
-            RG: 0.0,
-            GNSS: { lat: 11.9465, lon: 108.4419 },
-        }),
-    },
-];
 
 // ── Main Page ─────────────────────────────────────────────────────────────────
 export default function DeviceDetailPage() {
@@ -78,10 +27,16 @@ export default function DeviceDetailPage() {
     const [submitting, setSubmitting] = useState(false);
     const [sensorTypes, setSensorTypes] = useState([]);
 
+    // History
+    const [history, setHistory] = useState([]);
+    const [historyLoading, setHistoryLoading] = useState(false);
+    const [historyPage, setHistoryPage] = useState(1);
+    const [historyTotalPages, setHistoryTotalPages] = useState(1);
+
     useEffect(() => {
         const fetchTypes = async () => {
             try {
-                const data = await sensorTypeService.getAll();
+                const data = await channelDefinitionService.getAll();
                 setSensorTypes(data);
             } catch (err) {
                 console.error("Failed to load sensor types:", err);
@@ -89,9 +44,6 @@ export default function DeviceDetailPage() {
         };
         fetchTypes();
     }, []);
-    // State – history (kept as mock)
-    const [history] = useState(MOCK_HISTORY);
-    const [historyFilter, setHistoryFilter] = useState("all");
 
     // State – modals
     const [modal, setModal] = useState(null); // null | { type: "add" | "edit" | "delete", sensor }
@@ -115,7 +67,30 @@ export default function DeviceDetailPage() {
     useEffect(() => {
         if (!deviceId) return;
         fetchDeviceData();
-    }, [deviceId]);
+    }, [deviceId, fetchDeviceData]);
+
+    useEffect(() => {
+        const fetchHistory = async () => {
+            if (!deviceId) return;
+            try {
+                setHistoryLoading(true);
+                const res = await sensordataService.getAll({
+                    deviceId,
+                    page: historyPage,
+                    limit: 10,
+                });
+                setHistory(res.data || []);
+                setHistoryTotalPages(res.totalPages || 1);
+            } catch (err) {
+                console.error("Failed to load history:", err);
+            } finally {
+                setHistoryLoading(false);
+            }
+        };
+
+        fetchHistory();
+    }, [deviceId, historyPage]);
+
     const sensors = device?.sensors || [];
 
     // ── Handlers ────────────────────────────────────────────────────────────
@@ -150,11 +125,6 @@ export default function DeviceDetailPage() {
             setSubmitting(false);
         }
     };
-
-    const filteredHistory =
-        historyFilter === "all"
-            ? history
-            : history.filter((h) => h.status === parseInt(historyFilter));
 
     const formatTime = (iso) => {
         if (!iso) return "N/A";
@@ -271,9 +241,15 @@ export default function DeviceDetailPage() {
             )}
 
             {tab === "history" && (
-                <HistoryList history={history} formatTime={formatTime} />
+                <HistoryList
+                    history={history}
+                    formatTime={formatTime}
+                    loading={historyLoading}
+                    page={historyPage}
+                    totalPages={historyTotalPages}
+                    onPageChange={setHistoryPage}
+                />
             )}
-
             {(modal?.type === "add" || modal?.type === "edit") && (
                 <SensorModal
                     sensor={modal.sensor}

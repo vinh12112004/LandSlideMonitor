@@ -10,4 +10,5 @@ public interface ISensorDataService
     Task<SensorData> ProcessSensorDataAsync(SensorDataDto dto);
     Task<PagedResult<SensorData>> GetPagedAsync(SensorQueryParams param);
     Task<IEnumerable<SensorData>> GetLatestForAllDevicesAsync(int? provinceId = null);
+    Task<PagedResult<SensorData>> GetAlertsPagedAsync(SensorQueryParams param);
 }

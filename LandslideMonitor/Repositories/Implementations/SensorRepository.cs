@@ -18,12 +18,18 @@ namespace LandslideMonitor.Repositories.Implementations
 
         public async Task<IEnumerable<Sensor>> GetSensorsAsync()
         {
-            return await _context.Sensors.ToListAsync();
+            return await _context.Sensors
+                .Include(s => s.SensorChannels)
+                .ThenInclude(sc => sc.ChannelDefinition)
+                .ToListAsync();
         }
 
         public async Task<Sensor> GetSensorByIdAsync(int id)
         {
-            return await _context.Sensors.FindAsync(id);
+            return await _context.Sensors
+                .Include(s => s.SensorChannels)
+                .ThenInclude(sc => sc.ChannelDefinition)
+                .FirstOrDefaultAsync(s => s.Id == id);
         }
 
         public async Task CreateSensorAsync(Sensor sensor)

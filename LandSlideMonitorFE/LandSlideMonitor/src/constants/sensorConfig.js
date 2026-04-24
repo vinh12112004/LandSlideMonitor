@@ -1,10 +1,4 @@
 // ── Constants ─────────────────────────────────────────────────────────────────
-export const SENSOR_TYPE_LABEL = {
-    1: "Gia tốc kế",
-    2: "Độ ẩm đất",
-    3: "Vũ lượng kế",
-    4: "GNSS",
-};
 export const SENSOR_TYPE_ICON = {
     1: "vibration",
     2: "water_drop",

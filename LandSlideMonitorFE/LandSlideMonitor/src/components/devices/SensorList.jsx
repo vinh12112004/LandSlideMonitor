@@ -1,11 +1,3 @@
-import StatusBadge from "../ui/StatusBadge"; // Giả sử bạn có component này
-
-const SENSOR_TYPE_LABEL = {
-    1: "Gia tốc kế",
-    2: "Độ ẩm đất",
-    3: "Vũ lượng kế",
-    4: "GNSS",
-};
 const SENSOR_TYPE_ICON = {
     1: "vibration",
     2: "water_drop",
@@ -123,6 +115,13 @@ export default function SensorList({
                     const sCfg =
                         SENSOR_STATUS_CONFIG[sensor.status] ||
                         SENSOR_STATUS_CONFIG[0];
+                    console.log(
+                        "Sensor",
+                        sensor.id,
+                        "status",
+                        sensor.status,
+                        sCfg,
+                    );
                     return (
                         <div
                             key={sensor.id}
@@ -179,12 +178,25 @@ export default function SensorList({
                                     >
                                         {sensor.name}
                                     </span>
-                                    <StatusBadge config={sCfg} />
+                                    <span
+                                        style={{
+                                            padding: "2px 8px",
+                                            borderRadius: 999,
+                                            background: sCfg.bg,
+                                            color: sCfg.text,
+                                            border: `1px solid ${sCfg.color || "#94A3B8"}`,
+                                            fontSize: 11,
+                                            fontWeight: 600,
+                                        }}
+                                    >
+                                        {sCfg.label}
+                                    </span>
                                 </div>
                                 <div
                                     style={{
                                         display: "flex",
-                                        gap: 16,
+                                        flexWrap: "wrap",
+                                        gap: 10,
                                         fontSize: 13,
                                         color: "var(--color-text-secondary)",
                                     }}
@@ -202,19 +214,53 @@ export default function SensorList({
                                         </span>
                                         {sensor.sensorCode}
                                     </span>
-                                    <span>
+
+                                    <span
+                                        style={{
+                                            display: "flex",
+                                            alignItems: "center",
+                                            gap: 6,
+                                        }}
+                                    >
                                         <span
                                             className="material-symbols-outlined"
                                             style={{
                                                 fontSize: 13,
                                                 verticalAlign: "middle",
-                                                marginRight: 3,
                                             }}
                                         >
                                             category
                                         </span>
-                                        {SENSOR_TYPE_LABEL[sensor.type]}
+                                        {(sensor.channels || []).length > 0 ? (
+                                            <span
+                                                style={{
+                                                    display: "flex",
+                                                    flexWrap: "wrap",
+                                                    gap: 6,
+                                                }}
+                                            >
+                                                {sensor.channels.map((c) => (
+                                                    <span
+                                                        key={c.id}
+                                                        style={{
+                                                            padding: "2px 8px",
+                                                            borderRadius: 999,
+                                                            background:
+                                                                "#F2F6FF",
+                                                            color: "#185FA5",
+                                                            border: "1px solid #D6E4FF",
+                                                            fontSize: 12,
+                                                        }}
+                                                    >
+                                                        {c.channelName}
+                                                    </span>
+                                                ))}
+                                            </span>
+                                        ) : (
+                                            <span>Chưa gán channel</span>
+                                        )}
                                     </span>
+                                    {/* 
                                     <span
                                         style={{
                                             color: "var(--color-text-secondary)",
@@ -222,7 +268,7 @@ export default function SensorList({
                                         }}
                                     >
                                         ID: {sensor.id}
-                                    </span>
+                                    </span> */}
                                 </div>
                             </div>
 

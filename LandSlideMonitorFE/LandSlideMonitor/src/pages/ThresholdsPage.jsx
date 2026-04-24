@@ -1,29 +1,29 @@
 import { useEffect, useMemo, useState } from "react";
 import thresholdService from "../services/thresholdService";
-import sensorTypeService from "../services/sensorTypeService";
+import channelDefinitionService from "../services/channelDefinitionService";
 import ThresholdModal from "../components/thresholds/ThresholdModal";
 import SensorTypeModal from "../components/thresholds/SensorTypeModal";
 
-const ACTION_TYPES = [
+const LEVELS = [
     {
         value: 0,
-        label: "Normal",
+        label: "Bình thường",
         color: "text-emerald-700 bg-emerald-50 ring-emerald-200",
     },
     {
         value: 1,
-        label: "Warning",
-        color: "text-amber-700  bg-amber-50  ring-amber-200",
+        label: "Cảnh báo",
+        color: "text-amber-700 bg-amber-50 ring-amber-200",
     },
     {
         value: 2,
-        label: "Alert",
-        color: "text-rose-700   bg-rose-50   ring-rose-200",
+        label: "Nguy hiểm",
+        color: "text-rose-700 bg-rose-50 ring-rose-200",
     },
 ];
 
-function ActionBadge({ value }) {
-    const type = ACTION_TYPES.find((x) => x.value === value);
+function LevelBadge({ value }) {
+    const type = LEVELS.find((x) => x.value === value);
     if (!type) return null;
     return (
         <span
@@ -55,7 +55,7 @@ function IconButton({ onClick, title, icon, variant = "default" }) {
 
 export default function ThresholdsPage() {
     const [thresholds, setThresholds] = useState([]);
-    const [sensorTypes, setSensorTypes] = useState([]);
+    const [channelDefinitions, setChannelDefinitions] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [tab, setTab] = useState("thresholds");
@@ -69,13 +69,13 @@ export default function ThresholdsPage() {
 
     useEffect(() => {
         fetchThresholds();
-        fetchSensorTypes();
+        fetchChannelDefinitions();
     }, []);
 
-    const fetchSensorTypes = async () => {
+    const fetchChannelDefinitions = async () => {
         try {
-            const data = await sensorTypeService.getAll();
-            setSensorTypes(data);
+            const data = await channelDefinitionService.getAll();
+            setChannelDefinitions(data);
         } catch (err) {
             console.error(err);
         }
@@ -94,18 +94,10 @@ export default function ThresholdsPage() {
         }
     };
 
-    const dataKeyByType = useMemo(() => {
-        const map = new Map();
-        sensorTypes.forEach((t) => {
-            if (!map.has(t.id) && t.dataKey) map.set(t.id, t.dataKey);
-        });
-        return map;
-    }, [sensorTypes]);
-
     const filtered = useMemo(() => {
         if (filterType === "all") return thresholds;
         return thresholds.filter(
-            (t) => t.sensorType?.id === parseInt(filterType),
+            (t) => t.channelDefinitionId === parseInt(filterType, 10),
         );
     }, [thresholds, filterType]);
 
@@ -152,11 +144,11 @@ export default function ThresholdsPage() {
         try {
             setTypeSubmitting(true);
             if (editingType)
-                await sensorTypeService.update(editingType.id, form);
-            else await sensorTypeService.create(form);
+                await channelDefinitionService.update(editingType.id, form);
+            else await channelDefinitionService.create(form);
             setTypeModalOpen(false);
             setEditingType(null);
-            fetchSensorTypes();
+            fetchChannelDefinitions();
         } catch (err) {
             console.error(err);
             alert(err?.response?.data || "Lưu thất bại. Vui lòng thử lại.");
@@ -166,17 +158,16 @@ export default function ThresholdsPage() {
     };
 
     const handleDeleteType = async (id) => {
-        if (!confirm("Xóa SensorType này?")) return;
+        if (!confirm("Xóa ChannelDefinition này?")) return;
         try {
-            await sensorTypeService.delete(id);
-            fetchSensorTypes();
+            await channelDefinitionService.delete(id);
+            fetchChannelDefinitions();
         } catch (err) {
             console.error(err);
             alert("Xóa thất bại. Vui lòng thử lại.");
         }
     };
 
-    /* ── loading / error states ── */
     if (loading) {
         return (
             <main className="ml-64 p-10 bg-surface min-h-[calc(100vh-64px)] flex items-center justify-center">
@@ -205,10 +196,8 @@ export default function ThresholdsPage() {
         );
     }
 
-    /* ── main layout ── */
     return (
         <main className="ml-64 bg-surface min-h-[calc(100vh-64px)]">
-            {/* ── Page header ── */}
             <div className="px-10 pt-10 pb-6 border-b border-outline-variant/15 bg-surface-container-low/40">
                 <div className="flex flex-wrap items-start justify-between gap-6">
                     <div>
@@ -221,8 +210,7 @@ export default function ThresholdsPage() {
                             </h2>
                         </div>
                         <p className="text-sm text-on-surface-variant ml-9">
-                            Quản lý dải giá trị theo SensorType, DataKey và đơn
-                            vị đo
+                            Quản lý ngưỡng theo Channel, DataKey và đơn vị đo
                         </p>
                     </div>
 
@@ -247,13 +235,12 @@ export default function ThresholdsPage() {
                             <span className="material-symbols-outlined text-[18px]">
                                 add
                             </span>
-                            Thêm SensorType
+                            Thêm Channel
                         </button>
                     )}
                 </div>
             </div>
 
-            {/* ── Tabs ── */}
             <div className="px-10">
                 <div className="flex gap-1 border-b border-outline-variant/15">
                     {[
@@ -263,8 +250,8 @@ export default function ThresholdsPage() {
                             icon: "waterfall_chart",
                         },
                         {
-                            key: "sensortypes",
-                            label: "Sensor Types",
+                            key: "channels",
+                            label: "Channels",
                             icon: "sensors",
                         },
                     ].map((t) => (
@@ -287,10 +274,8 @@ export default function ThresholdsPage() {
             </div>
 
             <div className="px-10 py-6">
-                {/* ══ Thresholds tab ══ */}
                 {tab === "thresholds" && (
                     <>
-                        {/* Filter bar */}
                         <div className="flex items-center gap-3 mb-5">
                             <span className="material-symbols-outlined text-[18px] text-on-surface-variant">
                                 filter_list
@@ -300,8 +285,8 @@ export default function ThresholdsPage() {
                                 onChange={(e) => setFilterType(e.target.value)}
                                 className="px-3 py-1.5 rounded-lg border border-outline-variant/50 bg-white text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/30 cursor-pointer"
                             >
-                                <option value="all">Tất cả SensorType</option>
-                                {sensorTypes.map((t) => (
+                                <option value="all">Tất cả Channel</option>
+                                {channelDefinitions.map((t) => (
                                     <option key={t.id} value={t.id}>
                                         {t.name}
                                     </option>
@@ -317,16 +302,15 @@ export default function ThresholdsPage() {
                             )}
                         </div>
 
-                        {/* Table */}
                         <div className="bg-white rounded-2xl border border-outline-variant/15 overflow-hidden shadow-[0_1px_4px_rgba(0,0,0,.06)]">
-                            {/* Table header */}
-                            <div className="grid grid-cols-[1.4fr_1fr_80px_80px_130px_100px] gap-4 px-5 py-3 bg-surface-container-low/60 border-b border-outline-variant/10">
+                            <div className="grid grid-cols-[1.3fr_1fr_120px_110px_90px_1fr_90px] gap-4 px-5 py-3 bg-surface-container-low/60 border-b border-outline-variant/10">
                                 {[
-                                    "Sensor Type",
+                                    "Channel",
                                     "DataKey",
-                                    "Min",
-                                    "Max",
-                                    "Action Type",
+                                    "Threshold",
+                                    "Level",
+                                    "Unit",
+                                    "Note",
                                     "",
                                 ].map((h) => (
                                     <div
@@ -351,23 +335,25 @@ export default function ThresholdsPage() {
                                 filtered.map((t) => (
                                     <div
                                         key={t.id}
-                                        className="grid grid-cols-[1.4fr_1fr_80px_80px_130px_100px] gap-4 px-5 py-3.5 text-sm text-on-surface border-b border-outline-variant/10 last:border-b-0 hover:bg-surface-container-lowest/60 transition group"
+                                        className="grid grid-cols-[1.3fr_1fr_120px_110px_90px_1fr_90px] gap-4 px-5 py-3.5 text-sm text-on-surface border-b border-outline-variant/10 last:border-b-0 hover:bg-surface-container-lowest/60 transition group"
                                     >
                                         <div className="font-semibold truncate">
-                                            {t.sensorType?.name}
+                                            {t.channelName}
                                         </div>
                                         <div className="font-mono text-[12px] text-on-surface-variant bg-surface-container px-2 py-0.5 rounded-md self-center w-fit max-w-full truncate">
-                                            {t.sensorTypeDataKey ||
-                                                t.sensorType?.dataKey}
+                                            {t.dataKey}
                                         </div>
                                         <div className="tabular-nums">
-                                            {t.minValue}
-                                        </div>
-                                        <div className="tabular-nums">
-                                            {t.maxValue}
+                                            {t.thresholdValue}
                                         </div>
                                         <div>
-                                            <ActionBadge value={t.actionType} />
+                                            <LevelBadge value={t.level} />
+                                        </div>
+                                        <div className="font-semibold text-on-surface-variant self-center">
+                                            {t.unitSymbol}
+                                        </div>
+                                        <div className="text-on-surface-variant truncate">
+                                            {t.note || "-"}
                                         </div>
                                         <div className="flex justify-end gap-0.5 opacity-0 group-hover:opacity-100 transition">
                                             <IconButton
@@ -400,9 +386,8 @@ export default function ThresholdsPage() {
                         {modalOpen && (
                             <ThresholdModal
                                 editing={editing}
-                                sensorTypes={sensorTypes}
-                                actionTypes={ACTION_TYPES}
-                                dataKeyByType={dataKeyByType}
+                                channelDefinitions={channelDefinitions}
+                                levels={LEVELS}
                                 onClose={handleCloseModal}
                                 onSave={handleSave}
                                 submitting={submitting}
@@ -411,10 +396,8 @@ export default function ThresholdsPage() {
                     </>
                 )}
 
-                {/* ══ SensorTypes tab ══ */}
-                {tab === "sensortypes" && (
+                {tab === "channels" && (
                     <div className="bg-white rounded-2xl border border-outline-variant/15 overflow-hidden shadow-[0_1px_4px_rgba(0,0,0,.06)]">
-                        {/* Table header */}
                         <div className="grid grid-cols-[1.5fr_1fr_100px_100px] gap-4 px-5 py-3 bg-surface-container-low/60 border-b border-outline-variant/10">
                             {["Name", "DataKey", "Unit", ""].map((h) => (
                                 <div
@@ -426,17 +409,15 @@ export default function ThresholdsPage() {
                             ))}
                         </div>
 
-                        {sensorTypes.length === 0 ? (
+                        {channelDefinitions.length === 0 ? (
                             <div className="flex flex-col items-center gap-2 py-16 text-on-surface-variant">
                                 <span className="material-symbols-outlined text-4xl opacity-30">
                                     sensors
                                 </span>
-                                <p className="text-sm">
-                                    Chưa có loại cảm biến nào.
-                                </p>
+                                <p className="text-sm">Chưa có channel nào.</p>
                             </div>
                         ) : (
-                            sensorTypes.map((t) => (
+                            channelDefinitions.map((t) => (
                                 <div
                                     key={t.id}
                                     className="grid grid-cols-[1.5fr_1fr_100px_100px] gap-4 px-5 py-3.5 text-sm text-on-surface border-b border-outline-variant/10 last:border-b-0 hover:bg-surface-container-lowest/60 transition group"

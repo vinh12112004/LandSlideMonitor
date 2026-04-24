@@ -23,6 +23,14 @@ public class SensorDataController : ControllerBase
         var result = await _dataService.GetPagedAsync(param);
         return Ok(result);
     }
+
+    [HttpGet("alerts")]
+    public async Task<IActionResult> GetAlerts([FromQuery] SensorQueryParams param)
+    {
+        var result = await _dataService.GetAlertsPagedAsync(param);
+        return Ok(result);
+    }
+
     [HttpGet("latest-all")]
     public async Task<IActionResult> GetLatestForAllDevices([FromQuery] int? provinceId)
     {

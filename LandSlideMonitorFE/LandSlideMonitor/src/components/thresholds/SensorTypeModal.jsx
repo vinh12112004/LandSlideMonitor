@@ -28,8 +28,7 @@ export default function SensorTypeModal({
         });
     };
 
-    const isValid =
-        form.name.trim() && form.dataKey.trim() && form.unitSymbol.trim();
+    const isValid = form.name.trim() && form.dataKey.trim();
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
@@ -76,7 +75,6 @@ export default function SensorTypeModal({
                             onChange={handleChange}
                             className="w-full border-2 border-outline-variant/80 rounded-xl px-4 py-2.5 text-sm bg-white"
                             placeholder="VD: %, g, mm"
-                            required
                         />
                     </div>
                     <div className="flex gap-3 pt-4">

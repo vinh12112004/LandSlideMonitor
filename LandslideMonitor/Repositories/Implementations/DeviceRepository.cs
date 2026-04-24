@@ -73,6 +73,7 @@ public class DeviceRepository : IDeviceRepository
         var device = await _db.Devices
             .Include(d => d.Province)
             .Include(d => d.Sensors)
+            .ThenInclude(s => s.SensorChannels).ThenInclude(sc => sc.ChannelDefinition)
             .FirstOrDefaultAsync(d => d.DeviceId == deviceId);
 
         if (device == null) return null;

@@ -2,7 +2,14 @@ import { useState } from "react";
 import JsonViewer from "./JsonViewer";
 import { DATA_STATUS_CONFIG } from "../../constants/sensorConfig";
 
-const HistoryList = ({ history, formatTime }) => {
+const HistoryList = ({
+    history,
+    formatTime,
+    loading = false,
+    page = 1,
+    totalPages = 1,
+    onPageChange,
+}) => {
     const [historyFilter, setHistoryFilter] = useState("all");
 
     const filteredHistory =
@@ -78,80 +85,95 @@ const HistoryList = ({ history, formatTime }) => {
                     gap: 10,
                 }}
             >
-                {filteredHistory.map((record) => {
-                    const dCfg = DATA_STATUS_CONFIG[record.status];
-                    return (
-                        <div
-                            key={record.id}
-                            style={{
-                                background: "var(--color-background-primary)",
-                                border: "0.5px solid var(--color-border-tertiary)",
-                                borderRadius: 12,
-                                padding: "16px 20px",
-                                borderLeft: `3px solid ${dCfg.color}`,
-                            }}
-                        >
+                {loading && (
+                    <div
+                        style={{
+                            textAlign: "center",
+                            padding: "28px 0",
+                            color: "var(--color-text-secondary)",
+                        }}
+                    >
+                        Đang tải lịch sử...
+                    </div>
+                )}
+
+                {!loading &&
+                    filteredHistory.map((record) => {
+                        const dCfg = DATA_STATUS_CONFIG[record.status];
+                        return (
                             <div
+                                key={record.id}
                                 style={{
-                                    display: "flex",
-                                    alignItems: "center",
-                                    gap: 12,
+                                    background:
+                                        "var(--color-background-primary)",
+                                    border: "0.5px solid var(--color-border-tertiary)",
+                                    borderRadius: 12,
+                                    padding: "16px 20px",
+                                    borderLeft: `3px solid ${dCfg.color}`,
                                 }}
                             >
-                                <span
-                                    className="material-symbols-outlined"
+                                <div
                                     style={{
-                                        fontSize: 20,
-                                        color: dCfg.color,
+                                        display: "flex",
+                                        alignItems: "center",
+                                        gap: 12,
                                     }}
                                 >
-                                    {dCfg.icon}
-                                </span>
-                                <div style={{ flex: 1 }}>
-                                    <div
+                                    <span
+                                        className="material-symbols-outlined"
                                         style={{
-                                            display: "flex",
-                                            alignItems: "center",
-                                            gap: 10,
+                                            fontSize: 20,
+                                            color: dCfg.color,
                                         }}
                                     >
-                                        <span
+                                        {dCfg.icon}
+                                    </span>
+                                    <div style={{ flex: 1 }}>
+                                        <div
                                             style={{
-                                                fontWeight: 500,
-                                                fontSize: 14,
-                                                color: "var(--color-text-primary)",
+                                                display: "flex",
+                                                alignItems: "center",
+                                                gap: 10,
                                             }}
                                         >
-                                            {formatTime(record.timestamp)}
-                                        </span>
-                                        <span
-                                            style={{
-                                                fontSize: 12,
-                                                padding: "2px 8px",
-                                                borderRadius: 12,
-                                                background: dCfg.bg,
-                                                color: dCfg.text,
-                                                fontWeight: 500,
-                                            }}
-                                        >
-                                            {dCfg.label}
-                                        </span>
-                                        <span
-                                            style={{
-                                                fontSize: 12,
-                                                color: "var(--color-text-secondary)",
-                                            }}
-                                        >
-                                            ID: {record.id}
-                                        </span>
+                                            <span
+                                                style={{
+                                                    fontWeight: 500,
+                                                    fontSize: 14,
+                                                    color: "var(--color-text-primary)",
+                                                }}
+                                            >
+                                                {formatTime(record.timestamp)}
+                                            </span>
+                                            <span
+                                                style={{
+                                                    fontSize: 12,
+                                                    padding: "2px 8px",
+                                                    borderRadius: 12,
+                                                    background: dCfg.bg,
+                                                    color: dCfg.text,
+                                                    fontWeight: 500,
+                                                }}
+                                            >
+                                                {dCfg.label}
+                                            </span>
+                                            <span
+                                                style={{
+                                                    fontSize: 12,
+                                                    color: "var(--color-text-secondary)",
+                                                }}
+                                            >
+                                                ID: {record.id}
+                                            </span>
+                                        </div>
+                                        <JsonViewer data={record.jsonData} />
                                     </div>
-                                    <JsonViewer data={record.jsonData} />
                                 </div>
                             </div>
-                        </div>
-                    );
-                })}
-                {filteredHistory.length === 0 && (
+                        );
+                    })}
+
+                {!loading && filteredHistory.length === 0 && (
                     <div
                         style={{
                             textAlign: "center",
@@ -182,6 +204,54 @@ const HistoryList = ({ history, formatTime }) => {
                         </p>
                     </div>
                 )}
+            </div>
+
+            <div
+                style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    marginTop: 16,
+                }}
+            >
+                <button
+                    onClick={() => onPageChange?.(Math.max(1, page - 1))}
+                    disabled={page <= 1}
+                    style={{
+                        padding: "6px 12px",
+                        borderRadius: 8,
+                        border: "0.5px solid var(--color-border-tertiary)",
+                        background: "none",
+                        cursor: page <= 1 ? "not-allowed" : "pointer",
+                        color: "var(--color-text-secondary)",
+                    }}
+                >
+                    Trước
+                </button>
+                <span
+                    style={{
+                        fontSize: 13,
+                        color: "var(--color-text-secondary)",
+                    }}
+                >
+                    Trang {page} / {totalPages}
+                </span>
+                <button
+                    onClick={() =>
+                        onPageChange?.(Math.min(totalPages, page + 1))
+                    }
+                    disabled={page >= totalPages}
+                    style={{
+                        padding: "6px 12px",
+                        borderRadius: 8,
+                        border: "0.5px solid var(--color-border-tertiary)",
+                        background: "none",
+                        cursor: page >= totalPages ? "not-allowed" : "pointer",
+                        color: "var(--color-text-secondary)",
+                    }}
+                >
+                    Sau
+                </button>
             </div>
         </div>
     );

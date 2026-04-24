@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace LandslideMonitor.Controllers;
 
 [ApiController]
-[Route("api/sensor-types")]
+[Route("api/channel-definitition")]
 public class ChannelDefinitionController : ControllerBase
 {
     private readonly IChannelDefinitionService _service;

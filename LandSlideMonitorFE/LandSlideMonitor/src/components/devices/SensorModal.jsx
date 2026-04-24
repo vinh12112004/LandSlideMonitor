@@ -1,7 +1,11 @@
 import { useState } from "react";
 import { SENSOR_STATUS_CONFIG } from "../../constants/sensorConfig";
 
-const DEFAULT_SENSOR_FORM = { name: "", type: 1, sensorCode: "" };
+const DEFAULT_SENSOR_FORM = {
+    name: "",
+    channelDefinitionIds: [],
+    sensorCode: "",
+};
 
 const SensorModal = ({
     sensor,
@@ -12,22 +16,38 @@ const SensorModal = ({
     sensorTypes,
 }) => {
     const isEdit = !!sensor?.id;
+
     const [form, setForm] = useState(
         isEdit
             ? {
                   name: sensor.name,
-                  sensorTypeId: sensor.sensorTypeId,
                   sensorCode: sensor.sensorCode,
                   status: sensor.status,
               }
             : DEFAULT_SENSOR_FORM,
     );
+
     const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
+
+    const toggleChannel = (id) => {
+        setForm((f) => {
+            const exists = f.channelDefinitionIds.includes(id);
+            const next = exists
+                ? f.channelDefinitionIds.filter((x) => x !== id)
+                : [...f.channelDefinitionIds, id];
+            return { ...f, channelDefinitionIds: next };
+        });
+    };
 
     const handleSave = () => {
         const dataToSave = isEdit
-            ? { name: form.name, status: form.status } // DTO for update
-            : { ...form, deviceId: deviceId }; // DTO for create
+            ? { name: form.name, status: form.status }
+            : {
+                  name: form.name,
+                  sensorCode: form.sensorCode,
+                  deviceId: deviceId,
+                  channelDefinitionIds: form.channelDefinitionIds,
+              };
         onSave(dataToSave, sensor?.id);
     };
 
@@ -119,13 +139,8 @@ const SensorModal = ({
                             disabled={submitting}
                         />
                     </div>
-                    <div
-                        style={{
-                            display: "grid",
-                            gridTemplateColumns: "1fr 1fr",
-                            gap: 12,
-                        }}
-                    >
+
+                    {!isEdit && (
                         <div>
                             <label
                                 style={{
@@ -135,27 +150,66 @@ const SensorModal = ({
                                     marginBottom: 6,
                                 }}
                             >
-                                Loại sensor
+                                Channel
                             </label>
-                            <select
-                                value={form.sensorTypeId}
-                                onChange={(e) =>
-                                    set(
-                                        "sensorTypeId",
-                                        parseInt(e.target.value),
-                                    )
-                                }
-                                disabled={isEdit || submitting}
-                                className="w-full border-2 border-outline-variant/80 rounded-xl px-4 py-2.5 text-sm bg-white"
+                            <div
+                                style={{
+                                    border: "2px solid var(--color-border-tertiary)",
+                                    borderRadius: 12,
+                                    padding: 10,
+                                    display: "flex",
+                                    flexDirection: "column",
+                                    gap: 8,
+                                    maxHeight: 160,
+                                    overflow: "auto",
+                                    background: "#fff",
+                                }}
                             >
-                                <option value="">-- Chọn loại --</option>
+                                {sensorTypes.length === 0 && (
+                                    <span
+                                        style={{
+                                            fontSize: 13,
+                                            color: "var(--color-text-secondary)",
+                                        }}
+                                    >
+                                        Chưa có channel nào.
+                                    </span>
+                                )}
                                 {sensorTypes.map((t) => (
-                                    <option key={t.id} value={t.id}>
-                                        {t.name}
-                                    </option>
+                                    <label
+                                        key={t.id}
+                                        style={{
+                                            display: "flex",
+                                            alignItems: "center",
+                                            gap: 8,
+                                            fontSize: 13,
+                                            color: "var(--color-text-primary)",
+                                        }}
+                                    >
+                                        <input
+                                            type="checkbox"
+                                            checked={form.channelDefinitionIds.includes(
+                                                t.id,
+                                            )}
+                                            onChange={() => toggleChannel(t.id)}
+                                            disabled={submitting}
+                                        />
+                                        <span>
+                                            {t.name} ({t.dataKey})
+                                        </span>
+                                    </label>
                                 ))}
-                            </select>
+                            </div>
                         </div>
+                    )}
+
+                    <div
+                        style={{
+                            display: "grid",
+                            gridTemplateColumns: "1fr 1fr",
+                            gap: 12,
+                        }}
+                    >
                         <div>
                             <label
                                 style={{
@@ -185,26 +239,31 @@ const SensorModal = ({
                                 )}
                             </select>
                         </div>
-                    </div>
-                    <div>
-                        <label
-                            style={{
-                                fontSize: 13,
-                                color: "var(--color-text-secondary)",
-                                display: "block",
-                                marginBottom: 6,
-                            }}
-                        >
-                            Mã sensor
-                        </label>
-                        <input
-                            value={form.sensorCode}
-                            onChange={(e) => set("sensorCode", e.target.value)}
-                            placeholder="VD: ACC-01"
-                            className="w-full border-2 border-outline-variant/80 rounded-xl px-4 py-2.5 text-sm bg-white"
-                            style={{ width: "100%", boxSizing: "border-box" }}
-                            disabled={isEdit || submitting}
-                        />
+                        <div>
+                            <label
+                                style={{
+                                    fontSize: 13,
+                                    color: "var(--color-text-secondary)",
+                                    display: "block",
+                                    marginBottom: 6,
+                                }}
+                            >
+                                Mã sensor
+                            </label>
+                            <input
+                                value={form.sensorCode}
+                                onChange={(e) =>
+                                    set("sensorCode", e.target.value)
+                                }
+                                placeholder="VD: ACC-01"
+                                className="w-full border-2 border-outline-variant/80 rounded-xl px-4 py-2.5 text-sm bg-white"
+                                style={{
+                                    width: "100%",
+                                    boxSizing: "border-box",
+                                }}
+                                disabled={isEdit || submitting}
+                            />
+                        </div>
                     </div>
                 </div>
 

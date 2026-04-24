@@ -59,14 +59,16 @@ public class MqttService : BackgroundService
                     Console.WriteLine("Device not found → ignore");
                     return;
                 }
+                double? lat = dto.Data.ContainsKey("lat") ? dto.Data["lat"] : null;
+                double? lon = dto.Data.ContainsKey("lon") ? dto.Data["lon"] : null;
                 var wasOffline = device.Status == DeviceStatus.Offline;
                 //  update device
                 var updatedDevice = await deviceService.UpdateStatusAsync(
                     dto.DeviceId,
                     DeviceStatus.Online,
                     dto.Timestamp,
-                    dto.Gps?.Lat,
-                    dto.Gps?.Lon
+                    lat,
+                    lon
                 );
                 
                 if (updatedDevice == null) return;

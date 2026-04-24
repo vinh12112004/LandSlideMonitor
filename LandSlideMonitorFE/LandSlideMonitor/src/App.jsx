@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { getAccessToken, getCurrentUser } from "./services/authService";
-
+import AlertsPage from "./pages/AlertsPage";
 import Sidebar from "./components/layout/Sidebar";
 import DevicesPage from "./pages/DevicesPage";
 import HistoryPage from "./pages/HistoryPage";
@@ -41,10 +41,7 @@ function MainLayout({ onLogout, user }) {
                     element={<PlaceholderPage title="Giám sát" />}
                 />
                 <Route path="/map" element={<MapViewPage />} />
-                <Route
-                    path="/alerts"
-                    element={<PlaceholderPage title="Cảnh báo" />}
-                />
+                <Route path="/alerts" element={<AlertsPage />} />
                 <Route path="/history" element={<HistoryPage />} />
                 <Route path="/devices" element={<DevicesPage user={user} />} />
                 {/* Protect the /users route */}
