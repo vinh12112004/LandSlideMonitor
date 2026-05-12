@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import sensordataService from "../services/sensordataService";
 import DataStatusBadge from "../components/alerts/DataStatusBadge";
-import AlertRow from "../components/alerts/AlertRow";
+import AlertsTable from "../components/alerts/AlertsTable";
 
 const LIMIT = 10;
 
@@ -265,104 +265,31 @@ export default function AlertsPage() {
             </div>
 
             {/* Table */}
-            <div className="bg-white dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm overflow-hidden">
-                {loading ? (
-                    <div className="flex items-center justify-center py-20 gap-3">
-                        <span
-                            className="material-symbols-outlined text-blue-400 animate-spin"
-                            style={{ fontSize: 28 }}
-                        >
-                            progress_activity
-                        </span>
-                        <span className="text-sm text-slate-400">
-                            Đang tải dữ liệu...
-                        </span>
-                    </div>
-                ) : error ? (
-                    <div className="flex flex-col items-center justify-center py-20 gap-3">
-                        <span className="material-symbols-outlined text-red-400 text-5xl">
-                            error_outline
-                        </span>
-                        <p className="text-sm text-slate-500">{error}</p>
-                        <button
-                            onClick={fetchAlerts}
-                            className="mt-2 px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-sm font-medium text-slate-600 transition-colors"
-                        >
-                            Thử lại
-                        </button>
-                    </div>
-                ) : !data?.data?.length ? (
-                    <div className="flex flex-col items-center justify-center py-20 gap-3">
-                        <span className="material-symbols-outlined text-slate-300 text-6xl">
-                            check_circle
-                        </span>
-                        <p className="text-sm text-slate-400 font-medium">
-                            Không có cảnh báo nào trong khoảng thời gian này.
-                        </p>
-                    </div>
-                ) : (
-                    <>
-                        <div className="overflow-x-auto">
-                            <table className="w-full text-left">
-                                <thead>
-                                    <tr className="border-b border-slate-100 dark:border-slate-700">
-                                        <th className="px-4 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wider w-12">
-                                            #
-                                        </th>
-                                        <th className="px-4 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                                            Thiết bị
-                                        </th>
-                                        <th className="px-4 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                                            Thời gian
-                                        </th>
-                                        <th className="px-4 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                                            Trạng thái
-                                        </th>
-                                        <th className="px-4 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                                            Lý do cảnh báo
-                                        </th>
-                                        <th className="px-4 py-3 w-10" />
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {data.data.map((alert, idx) => (
-                                        <AlertRow
-                                            key={alert.id}
-                                            alert={alert}
-                                            index={
-                                                (appliedFilters.page - 1) *
-                                                    LIMIT +
-                                                idx +
-                                                1
-                                            }
-                                        />
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-
-                        {/* Footer: total + pagination */}
-                        <div className="px-5 py-4 border-t border-slate-100 dark:border-slate-700 flex items-center justify-between">
-                            <p className="text-xs text-slate-400">
-                                Tổng{" "}
-                                <span className="font-semibold text-slate-600 dark:text-slate-300">
-                                    {data.totalCount}
-                                </span>{" "}
-                                bản ghi — Trang{" "}
-                                <span className="font-semibold text-slate-600 dark:text-slate-300">
-                                    {data.currentPage}
-                                </span>{" "}
-                                / {data.totalPages}
-                            </p>
-                            <Pagination
-                                currentPage={data.currentPage}
-                                totalPages={data.totalPages}
-                                onPageChange={handlePageChange}
-                            />
-                        </div>
-                    </>
-                )}
-            </div>
+            <AlertsTable
+                alerts={data?.data ?? []}
+                loading={loading}
+                indexOffset={(appliedFilters.page - 1) * LIMIT}
+            />
+            {data && (
+                <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-outline-variant/10 bg-surface-container-lowest px-5 py-4">
+                    <p className="text-xs text-on-surface-variant">
+                        Tổng{" "}
+                        <span className="font-semibold text-on-surface">
+                            {data.totalCount}
+                        </span>{" "}
+                        bản ghi — Trang{" "}
+                        <span className="font-semibold text-on-surface">
+                            {data.currentPage}
+                        </span>{" "}
+                        / {data.totalPages}
+                    </p>
+                    <Pagination
+                        currentPage={data.currentPage}
+                        totalPages={data.totalPages}
+                        onPageChange={handlePageChange}
+                    />
+                </div>
+            )}
         </main>
     );
 }

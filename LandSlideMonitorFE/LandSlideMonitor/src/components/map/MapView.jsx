@@ -72,7 +72,7 @@ export default function MapView({ mapData }) {
     return (
         <MapContainer
             center={mapCenter}
-            zoom={13}
+            zoom={11.3}
             style={{ height: "100%", width: "100%" }}
         >
             {/* Bộ điều khiển chuyển đổi lớp bản đồ */}

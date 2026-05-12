@@ -14,7 +14,7 @@ export default function MapViewPage() {
     const [selectedProvince, setSelectedProvince] = useState("all");
 
     useEffect(() => {
-        injectMarkerStyles(); // Inject CSS animation for markers
+        injectMarkerStyles();
 
         const fetchProvinces = async () => {
             try {

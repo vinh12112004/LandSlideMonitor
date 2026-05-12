@@ -4,7 +4,6 @@ import { getAccessToken, getCurrentUser } from "./services/authService";
 import AlertsPage from "./pages/AlertsPage";
 import Sidebar from "./components/layout/Sidebar";
 import DevicesPage from "./pages/DevicesPage";
-import HistoryPage from "./pages/HistoryPage";
 import MapViewPage from "./pages/MapViewPage";
 import LoginPage from "./pages/LoginPage";
 import { initSignalR } from "./services/signalrInit";
@@ -42,7 +41,6 @@ function MainLayout({ onLogout, user }) {
                 />
                 <Route path="/map" element={<MapViewPage />} />
                 <Route path="/alerts" element={<AlertsPage />} />
-                <Route path="/history" element={<HistoryPage />} />
                 <Route path="/devices" element={<DevicesPage user={user} />} />
                 {/* Protect the /users route */}
                 <Route

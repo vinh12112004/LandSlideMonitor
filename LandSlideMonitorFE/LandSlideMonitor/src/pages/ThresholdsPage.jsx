@@ -3,7 +3,9 @@ import thresholdService from "../services/thresholdService";
 import channelDefinitionService from "../services/channelDefinitionService";
 import ThresholdModal from "../components/thresholds/ThresholdModal";
 import SensorTypeModal from "../components/thresholds/SensorTypeModal";
+import DataTable from "../components/ui/DataTable";
 
+// ── Constants ────────────────────────────────────────────────────────────────
 const LEVELS = [
     {
         value: 0,
@@ -22,6 +24,7 @@ const LEVELS = [
     },
 ];
 
+// ── Small UI helpers ─────────────────────────────────────────────────────────
 function LevelBadge({ value }) {
     const type = LEVELS.find((x) => x.value === value);
     if (!type) return null;
@@ -35,51 +38,74 @@ function LevelBadge({ value }) {
     );
 }
 
-function IconButton({ onClick, title, icon, variant = "default" }) {
-    const colors =
-        variant === "danger"
-            ? "text-rose-500 hover:text-rose-700 hover:bg-rose-50"
-            : "text-blue-500 hover:text-blue-700 hover:bg-blue-50";
+function RowActions({ onEdit, onDelete }) {
+    return (
+        <div className="flex items-center justify-end gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+            <button
+                onClick={onEdit}
+                className="p-1.5 rounded-lg text-primary hover:bg-primary/8 transition-colors"
+                title="Chỉnh sửa"
+            >
+                <span className="material-symbols-outlined text-[17px]">
+                    edit
+                </span>
+            </button>
+            <button
+                onClick={onDelete}
+                className="p-1.5 rounded-lg text-rose-500 hover:bg-rose-50 transition-colors"
+                title="Xóa"
+            >
+                <span className="material-symbols-outlined text-[17px]">
+                    delete
+                </span>
+            </button>
+        </div>
+    );
+}
+
+// ── Tab button ───────────────────────────────────────────────────────────────
+function Tab({ active, icon, label, onClick }) {
     return (
         <button
             onClick={onClick}
-            title={title}
-            className={`p-1.5 rounded-lg transition-colors ${colors}`}
+            className={`flex items-center gap-1.5 px-4 py-3 text-sm font-semibold border-b-2 -mb-px transition ${
+                active
+                    ? "border-primary text-primary"
+                    : "border-transparent text-on-surface-variant hover:text-on-surface"
+            }`}
         >
-            <span className="material-symbols-outlined text-[18px] leading-none">
+            <span className="material-symbols-outlined text-[16px]">
                 {icon}
             </span>
+            {label}
         </button>
     );
 }
 
+// ── Main Page ────────────────────────────────────────────────────────────────
 export default function ThresholdsPage() {
     const [thresholds, setThresholds] = useState([]);
     const [channelDefinitions, setChannelDefinitions] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [channelsLoading, setChannelsLoading] = useState(false);
     const [error, setError] = useState(null);
+
     const [tab, setTab] = useState("thresholds");
     const [filterType, setFilterType] = useState("all");
+
     const [modalOpen, setModalOpen] = useState(false);
     const [editing, setEditing] = useState(null);
     const [submitting, setSubmitting] = useState(false);
+
     const [typeModalOpen, setTypeModalOpen] = useState(false);
     const [editingType, setEditingType] = useState(null);
     const [typeSubmitting, setTypeSubmitting] = useState(false);
 
+    // ── Data fetching ────────────────────────────────────────────────────────
     useEffect(() => {
         fetchThresholds();
         fetchChannelDefinitions();
     }, []);
-
-    const fetchChannelDefinitions = async () => {
-        try {
-            const data = await channelDefinitionService.getAll();
-            setChannelDefinitions(data);
-        } catch (err) {
-            console.error(err);
-        }
-    };
 
     const fetchThresholds = async () => {
         try {
@@ -94,26 +120,27 @@ export default function ThresholdsPage() {
         }
     };
 
-    const filtered = useMemo(() => {
+    const fetchChannelDefinitions = async () => {
+        try {
+            setChannelsLoading(true);
+            const data = await channelDefinitionService.getAll();
+            setChannelDefinitions(data);
+        } catch (err) {
+            console.error(err);
+        } finally {
+            setChannelsLoading(false);
+        }
+    };
+
+    // ── Derived data ─────────────────────────────────────────────────────────
+    const filteredThresholds = useMemo(() => {
         if (filterType === "all") return thresholds;
         return thresholds.filter(
             (t) => t.channelDefinitionId === parseInt(filterType, 10),
         );
     }, [thresholds, filterType]);
 
-    const handleOpenAdd = () => {
-        setEditing(null);
-        setModalOpen(true);
-    };
-    const handleOpenEdit = (t) => {
-        setEditing(t);
-        setModalOpen(true);
-    };
-    const handleCloseModal = () => {
-        setModalOpen(false);
-        setEditing(null);
-    };
-
+    // ── Handlers ─────────────────────────────────────────────────────────────
     const handleDelete = async (id) => {
         if (!confirm("Xóa ngưỡng này?")) return;
         try {
@@ -130,7 +157,8 @@ export default function ThresholdsPage() {
             setSubmitting(true);
             if (editing) await thresholdService.update(editing.id, form);
             else await thresholdService.create(form);
-            handleCloseModal();
+            setModalOpen(false);
+            setEditing(null);
             fetchThresholds();
         } catch (err) {
             console.error(err);
@@ -140,7 +168,18 @@ export default function ThresholdsPage() {
         }
     };
 
-    const handleSaveType = async (form) => {
+    const handleDeleteChannel = async (id) => {
+        if (!confirm("Xóa channel này?")) return;
+        try {
+            await channelDefinitionService.delete(id);
+            fetchChannelDefinitions();
+        } catch (err) {
+            console.error(err);
+            alert("Xóa thất bại. Vui lòng thử lại.");
+        }
+    };
+
+    const handleSaveChannel = async (form) => {
         try {
             setTypeSubmitting(true);
             if (editingType)
@@ -157,32 +196,96 @@ export default function ThresholdsPage() {
         }
     };
 
-    const handleDeleteType = async (id) => {
-        if (!confirm("Xóa ChannelDefinition này?")) return;
-        try {
-            await channelDefinitionService.delete(id);
-            fetchChannelDefinitions();
-        } catch (err) {
-            console.error(err);
-            alert("Xóa thất bại. Vui lòng thử lại.");
-        }
-    };
+    // ── Column definitions ────────────────────────────────────────────────────
+    const thresholdColumns = [
+        {
+            key: "channelName",
+            label: "Channel",
+            className: "font-semibold text-on-surface",
+        },
+        {
+            key: "dataKey",
+            label: "DataKey",
+            render: (value) => (
+                <span className="font-mono text-[12px] text-on-surface-variant bg-surface-container px-2 py-0.5 rounded-md">
+                    {value}
+                </span>
+            ),
+        },
+        {
+            key: "thresholdValue",
+            label: "Threshold",
+            className: "tabular-nums text-on-surface",
+        },
+        {
+            key: "level",
+            label: "Level",
+            render: (value) => <LevelBadge value={value} />,
+        },
+        {
+            key: "unitSymbol",
+            label: "Đơn vị",
+            className: "font-semibold text-on-surface-variant",
+        },
+        {
+            key: "note",
+            label: "Note",
+            className: "text-on-surface-variant max-w-xs truncate",
+            render: (value) => value || <span className="opacity-40">—</span>,
+        },
+        {
+            key: "_actions",
+            label: "",
+            align: "right",
+            render: (_, row) => (
+                <RowActions
+                    onEdit={() => {
+                        setEditing(row);
+                        setModalOpen(true);
+                    }}
+                    onDelete={() => handleDelete(row.id)}
+                />
+            ),
+        },
+    ];
 
-    if (loading) {
-        return (
-            <main className="ml-64 p-10 bg-surface min-h-[calc(100vh-64px)] flex items-center justify-center">
-                <div className="flex flex-col items-center gap-3">
-                    <span className="material-symbols-outlined text-4xl text-primary animate-spin">
-                        progress_activity
-                    </span>
-                    <p className="text-sm text-on-surface-variant">
-                        Đang tải dữ liệu…
-                    </p>
-                </div>
-            </main>
-        );
-    }
+    const channelColumns = [
+        {
+            key: "name",
+            label: "Name",
+            className: "font-semibold text-on-surface",
+        },
+        {
+            key: "dataKey",
+            label: "DataKey",
+            render: (value) => (
+                <span className="font-mono text-[12px] text-on-surface-variant bg-surface-container px-2 py-0.5 rounded-md">
+                    {value}
+                </span>
+            ),
+        },
+        {
+            key: "unitSymbol",
+            label: "Đơn vị",
+            className: "font-semibold text-on-surface-variant",
+        },
+        {
+            key: "_actions",
+            label: "",
+            align: "right",
+            render: (_, row) => (
+                <RowActions
+                    onEdit={() => {
+                        setEditingType(row);
+                        setTypeModalOpen(true);
+                    }}
+                    onDelete={() => handleDeleteChannel(row.id)}
+                />
+            ),
+        },
+    ];
 
+    // ── Loading / error states ───────────────────────────────────────────────
     if (error) {
         return (
             <main className="ml-64 p-10 bg-surface min-h-[calc(100vh-64px)] flex items-center justify-center">
@@ -196,8 +299,10 @@ export default function ThresholdsPage() {
         );
     }
 
+    // ── Render ───────────────────────────────────────────────────────────────
     return (
         <main className="ml-64 bg-surface min-h-[calc(100vh-64px)]">
+            {/* Header */}
             <div className="px-10 pt-10 pb-6 border-b border-outline-variant/15 bg-surface-container-low/40">
                 <div className="flex flex-wrap items-start justify-between gap-6">
                     <div>
@@ -216,7 +321,10 @@ export default function ThresholdsPage() {
 
                     {tab === "thresholds" ? (
                         <button
-                            onClick={handleOpenAdd}
+                            onClick={() => {
+                                setEditing(null);
+                                setModalOpen(true);
+                            }}
                             className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-xl text-sm font-semibold shadow-sm hover:bg-primary/90 active:scale-[.98] transition"
                         >
                             <span className="material-symbols-outlined text-[18px]">
@@ -241,41 +349,29 @@ export default function ThresholdsPage() {
                 </div>
             </div>
 
+            {/* Tabs */}
             <div className="px-10">
                 <div className="flex gap-1 border-b border-outline-variant/15">
-                    {[
-                        {
-                            key: "thresholds",
-                            label: "Thresholds",
-                            icon: "waterfall_chart",
-                        },
-                        {
-                            key: "channels",
-                            label: "Channels",
-                            icon: "sensors",
-                        },
-                    ].map((t) => (
-                        <button
-                            key={t.key}
-                            onClick={() => setTab(t.key)}
-                            className={`flex items-center gap-1.5 px-4 py-3 text-sm font-semibold border-b-2 -mb-px transition ${
-                                tab === t.key
-                                    ? "border-primary text-primary"
-                                    : "border-transparent text-on-surface-variant hover:text-on-surface"
-                            }`}
-                        >
-                            <span className="material-symbols-outlined text-[16px]">
-                                {t.icon}
-                            </span>
-                            {t.label}
-                        </button>
-                    ))}
+                    <Tab
+                        active={tab === "thresholds"}
+                        icon="waterfall_chart"
+                        label="Thresholds"
+                        onClick={() => setTab("thresholds")}
+                    />
+                    <Tab
+                        active={tab === "channels"}
+                        icon="sensors"
+                        label="Channels"
+                        onClick={() => setTab("channels")}
+                    />
                 </div>
             </div>
 
+            {/* Content */}
             <div className="px-10 py-6">
                 {tab === "thresholds" && (
                     <>
+                        {/* Filter */}
                         <div className="flex items-center gap-3 mb-5">
                             <span className="material-symbols-outlined text-[18px] text-on-surface-variant">
                                 filter_list
@@ -300,162 +396,51 @@ export default function ThresholdsPage() {
                                     Xóa bộ lọc
                                 </button>
                             )}
+                            <span className="ml-auto text-xs text-on-surface-variant">
+                                {filteredThresholds.length} ngưỡng
+                            </span>
                         </div>
 
-                        <div className="bg-white rounded-2xl border border-outline-variant/15 overflow-hidden shadow-[0_1px_4px_rgba(0,0,0,.06)]">
-                            <div className="grid grid-cols-[1.3fr_1fr_120px_110px_90px_1fr_90px] gap-4 px-5 py-3 bg-surface-container-low/60 border-b border-outline-variant/10">
-                                {[
-                                    "Channel",
-                                    "DataKey",
-                                    "Threshold",
-                                    "Level",
-                                    "Unit",
-                                    "Note",
-                                    "",
-                                ].map((h) => (
-                                    <div
-                                        key={h}
-                                        className="text-[11px] font-bold text-on-surface-variant uppercase tracking-widest last:text-right"
-                                    >
-                                        {h}
-                                    </div>
-                                ))}
-                            </div>
-
-                            {filtered.length === 0 ? (
-                                <div className="flex flex-col items-center gap-2 py-16 text-on-surface-variant">
-                                    <span className="material-symbols-outlined text-4xl opacity-30">
-                                        data_table
-                                    </span>
-                                    <p className="text-sm">
-                                        Chưa có ngưỡng nào.
-                                    </p>
-                                </div>
-                            ) : (
-                                filtered.map((t) => (
-                                    <div
-                                        key={t.id}
-                                        className="grid grid-cols-[1.3fr_1fr_120px_110px_90px_1fr_90px] gap-4 px-5 py-3.5 text-sm text-on-surface border-b border-outline-variant/10 last:border-b-0 hover:bg-surface-container-lowest/60 transition group"
-                                    >
-                                        <div className="font-semibold truncate">
-                                            {t.channelName}
-                                        </div>
-                                        <div className="font-mono text-[12px] text-on-surface-variant bg-surface-container px-2 py-0.5 rounded-md self-center w-fit max-w-full truncate">
-                                            {t.dataKey}
-                                        </div>
-                                        <div className="tabular-nums">
-                                            {t.thresholdValue}
-                                        </div>
-                                        <div>
-                                            <LevelBadge value={t.level} />
-                                        </div>
-                                        <div className="font-semibold text-on-surface-variant self-center">
-                                            {t.unitSymbol}
-                                        </div>
-                                        <div className="text-on-surface-variant truncate">
-                                            {t.note || "-"}
-                                        </div>
-                                        <div className="flex justify-end gap-0.5 opacity-0 group-hover:opacity-100 transition">
-                                            <IconButton
-                                                onClick={() =>
-                                                    handleOpenEdit(t)
-                                                }
-                                                title="Chỉnh sửa"
-                                                icon="edit"
-                                            />
-                                            <IconButton
-                                                onClick={() =>
-                                                    handleDelete(t.id)
-                                                }
-                                                title="Xóa"
-                                                icon="delete"
-                                                variant="danger"
-                                            />
-                                        </div>
-                                    </div>
-                                ))
-                            )}
-                        </div>
-
-                        {filtered.length > 0 && (
-                            <p className="mt-3 text-xs text-on-surface-variant text-right">
-                                {filtered.length} ngưỡng
-                            </p>
-                        )}
-
-                        {modalOpen && (
-                            <ThresholdModal
-                                editing={editing}
-                                channelDefinitions={channelDefinitions}
-                                levels={LEVELS}
-                                onClose={handleCloseModal}
-                                onSave={handleSave}
-                                submitting={submitting}
-                            />
-                        )}
+                        {/* Table */}
+                        <DataTable
+                            columns={thresholdColumns}
+                            data={filteredThresholds}
+                            rowKey="id"
+                            loading={loading}
+                            emptyIcon="waterfall_chart"
+                            emptyText="Chưa có ngưỡng nào."
+                            rowClassName="group"
+                        />
                     </>
                 )}
 
                 {tab === "channels" && (
-                    <div className="bg-white rounded-2xl border border-outline-variant/15 overflow-hidden shadow-[0_1px_4px_rgba(0,0,0,.06)]">
-                        <div className="grid grid-cols-[1.5fr_1fr_100px_100px] gap-4 px-5 py-3 bg-surface-container-low/60 border-b border-outline-variant/10">
-                            {["Name", "DataKey", "Unit", ""].map((h) => (
-                                <div
-                                    key={h}
-                                    className="text-[11px] font-bold text-on-surface-variant uppercase tracking-widest last:text-right"
-                                >
-                                    {h}
-                                </div>
-                            ))}
-                        </div>
-
-                        {channelDefinitions.length === 0 ? (
-                            <div className="flex flex-col items-center gap-2 py-16 text-on-surface-variant">
-                                <span className="material-symbols-outlined text-4xl opacity-30">
-                                    sensors
-                                </span>
-                                <p className="text-sm">Chưa có channel nào.</p>
-                            </div>
-                        ) : (
-                            channelDefinitions.map((t) => (
-                                <div
-                                    key={t.id}
-                                    className="grid grid-cols-[1.5fr_1fr_100px_100px] gap-4 px-5 py-3.5 text-sm text-on-surface border-b border-outline-variant/10 last:border-b-0 hover:bg-surface-container-lowest/60 transition group"
-                                >
-                                    <div className="flex items-center gap-2.5 font-semibold">
-                                        {t.name}
-                                    </div>
-                                    <div className="font-mono text-[12px] text-on-surface-variant bg-surface-container px-2 py-0.5 rounded-md self-center w-fit truncate">
-                                        {t.dataKey}
-                                    </div>
-                                    <div className="font-semibold text-on-surface-variant self-center">
-                                        {t.unitSymbol}
-                                    </div>
-                                    <div className="flex justify-end gap-0.5 opacity-0 group-hover:opacity-100 transition">
-                                        <IconButton
-                                            onClick={() => {
-                                                setEditingType(t);
-                                                setTypeModalOpen(true);
-                                            }}
-                                            title="Chỉnh sửa"
-                                            icon="edit"
-                                        />
-                                        <IconButton
-                                            onClick={() =>
-                                                handleDeleteType(t.id)
-                                            }
-                                            title="Xóa"
-                                            icon="delete"
-                                            variant="danger"
-                                        />
-                                    </div>
-                                </div>
-                            ))
-                        )}
-                    </div>
+                    <DataTable
+                        columns={channelColumns}
+                        data={channelDefinitions}
+                        rowKey="id"
+                        loading={channelsLoading}
+                        emptyIcon="sensors"
+                        emptyText="Chưa có channel nào."
+                        rowClassName="group"
+                    />
                 )}
             </div>
 
+            {/* Modals */}
+            {modalOpen && (
+                <ThresholdModal
+                    editing={editing}
+                    channelDefinitions={channelDefinitions}
+                    levels={LEVELS}
+                    onClose={() => {
+                        setModalOpen(false);
+                        setEditing(null);
+                    }}
+                    onSave={handleSave}
+                    submitting={submitting}
+                />
+            )}
             {typeModalOpen && (
                 <SensorTypeModal
                     editing={editingType}
@@ -463,7 +448,7 @@ export default function ThresholdsPage() {
                         setTypeModalOpen(false);
                         setEditingType(null);
                     }}
-                    onSave={handleSaveType}
+                    onSave={handleSaveChannel}
                     submitting={typeSubmitting}
                 />
             )}
