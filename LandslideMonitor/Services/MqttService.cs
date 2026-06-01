@@ -79,8 +79,9 @@ public class MqttService : BackgroundService
                     id = saved.id,
                     deviceId = saved.DeviceId,
                     timestamp = saved.Timestamp,
-                    data = saved.JsonData,
-                    status = saved.Status
+                    jsonData = saved.JsonData,
+                    status = saved.Status,
+                    alertReason = saved.AlertReason
                 });
                 if (wasOffline && updatedDevice.Status == DeviceStatus.Online)
                 {

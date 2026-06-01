@@ -130,7 +130,11 @@ export default function MapViewPage() {
                 selectedProvince={selectedProvince}
                 onProvinceChange={setSelectedProvince}
             />
-            <MapView mapData={mapData} />
+            <MapView
+                mapData={mapData}
+                provinces={provinces}
+                selectedProvince={selectedProvince}
+            />
         </main>
     );
 }

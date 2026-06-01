@@ -7,7 +7,7 @@ export default function Sidebar({ onLogout, user }) {
     const location = useLocation();
 
     const NAV_ITEMS = [
-        { path: "/monitoring", label: "Giám sát", icon: "monitoring" },
+        // { path: "/monitoring", label: "Giám sát", icon: "monitoring" },
         { path: "/map", label: "Bản đồ", icon: "map" },
         { path: "/alerts", label: "Cảnh báo", icon: "warning" },
         { path: "/devices", label: "Thiết bị", icon: "devices" },

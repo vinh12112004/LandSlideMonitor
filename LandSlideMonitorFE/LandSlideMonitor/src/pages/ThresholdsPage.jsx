@@ -200,12 +200,12 @@ export default function ThresholdsPage() {
     const thresholdColumns = [
         {
             key: "channelName",
-            label: "Channel",
+            label: "Kênh",
             className: "font-semibold text-on-surface",
         },
         {
             key: "dataKey",
-            label: "DataKey",
+            label: "Khóa dữ liệu",
             render: (value) => (
                 <span className="font-mono text-[12px] text-on-surface-variant bg-surface-container px-2 py-0.5 rounded-md">
                     {value}
@@ -214,12 +214,12 @@ export default function ThresholdsPage() {
         },
         {
             key: "thresholdValue",
-            label: "Threshold",
+            label: "Ngưỡng",
             className: "tabular-nums text-on-surface",
         },
         {
             key: "level",
-            label: "Level",
+            label: "Mức",
             render: (value) => <LevelBadge value={value} />,
         },
         {
@@ -229,7 +229,7 @@ export default function ThresholdsPage() {
         },
         {
             key: "note",
-            label: "Note",
+            label: "Ghi chú",
             className: "text-on-surface-variant max-w-xs truncate",
             render: (value) => value || <span className="opacity-40">—</span>,
         },
@@ -252,12 +252,12 @@ export default function ThresholdsPage() {
     const channelColumns = [
         {
             key: "name",
-            label: "Name",
+            label: "Tên",
             className: "font-semibold text-on-surface",
         },
         {
             key: "dataKey",
-            label: "DataKey",
+            label: "Khóa dữ liệu",
             render: (value) => (
                 <span className="font-mono text-[12px] text-on-surface-variant bg-surface-container px-2 py-0.5 rounded-md">
                     {value}
@@ -315,7 +315,8 @@ export default function ThresholdsPage() {
                             </h2>
                         </div>
                         <p className="text-sm text-on-surface-variant ml-9">
-                            Quản lý ngưỡng theo Channel, DataKey và đơn vị đo
+                            Quản lý ngưỡng theo Kênh, Khóa dữ liệu và đơn vị
+                            đo{" "}
                         </p>
                     </div>
 
@@ -343,7 +344,7 @@ export default function ThresholdsPage() {
                             <span className="material-symbols-outlined text-[18px]">
                                 add
                             </span>
-                            Thêm Channel
+                            Thêm kênh
                         </button>
                     )}
                 </div>
@@ -381,7 +382,7 @@ export default function ThresholdsPage() {
                                 onChange={(e) => setFilterType(e.target.value)}
                                 className="px-3 py-1.5 rounded-lg border border-outline-variant/50 bg-white text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/30 cursor-pointer"
                             >
-                                <option value="all">Tất cả Channel</option>
+                                <option value="all">Tất cả kênh</option>
                                 {channelDefinitions.map((t) => (
                                     <option key={t.id} value={t.id}>
                                         {t.name}
@@ -421,7 +422,7 @@ export default function ThresholdsPage() {
                         rowKey="id"
                         loading={channelsLoading}
                         emptyIcon="sensors"
-                        emptyText="Chưa có channel nào."
+                        emptyText="Chưa có kênh nào."
                         rowClassName="group"
                     />
                 )}

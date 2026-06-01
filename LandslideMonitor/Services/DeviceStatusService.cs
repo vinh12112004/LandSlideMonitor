@@ -26,7 +26,7 @@ public class DeviceStatusService : BackgroundService
 
             var now = DateTime.UtcNow;
 
-            var threshold = now.AddSeconds(-30);
+            var threshold = now.AddSeconds(-1800);
             var devices = await deviceService.GetOfflineCandidatesAsync(threshold);
 
             foreach (var device in devices)

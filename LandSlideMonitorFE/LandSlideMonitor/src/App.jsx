@@ -49,7 +49,7 @@ function MainLayout({ onLogout, user }) {
                         user?.role === "Admin" ? (
                             <UsersPage />
                         ) : (
-                            <Navigate to="/monitoring" replace />
+                            <Navigate to="/devices" replace />
                         )
                     }
                 />
@@ -58,10 +58,7 @@ function MainLayout({ onLogout, user }) {
                     element={<DeviceDetailPage />}
                 />
                 <Route path="/thresholds" element={<ThresholdsPage />} />
-                <Route
-                    path="*"
-                    element={<Navigate to="/monitoring" replace />}
-                />
+                <Route path="*" element={<Navigate to="/devices" replace />} />
             </Routes>
             // ...
         </div>

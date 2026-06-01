@@ -15,7 +15,7 @@ import HistoryList from "../components/devices/HistoryList";
 import SensorModal from "../components/devices/SensorModal";
 import DeleteConfirmModal from "../components/devices/DeleteConfirmModal";
 import { DEVICE_STATUS_CONFIG } from "../constants/sensorConfig";
-
+import { onSignalR, offSignalR } from "../services/signalr";
 // ── Main Page ─────────────────────────────────────────────────────────────────
 export default function DeviceDetailPage() {
     const { deviceId } = useParams();
@@ -32,6 +32,8 @@ export default function DeviceDetailPage() {
     const [historyLoading, setHistoryLoading] = useState(false);
     const [historyPage, setHistoryPage] = useState(1);
     const [historyTotalPages, setHistoryTotalPages] = useState(1);
+    const historyPageSize = 10;
+    const [historyTotalCount, setHistoryTotalCount] = useState(0);
 
     useEffect(() => {
         const fetchTypes = async () => {
@@ -77,10 +79,11 @@ export default function DeviceDetailPage() {
                 const res = await sensordataService.getAll({
                     deviceId,
                     page: historyPage,
-                    limit: 10,
+                    limit: historyPageSize,
                 });
                 setHistory(res.data || []);
                 setHistoryTotalPages(res.totalPages || 1);
+                setHistoryTotalCount(res.totalCount || 0);
             } catch (err) {
                 console.error("Failed to load history:", err);
             } finally {
@@ -89,6 +92,30 @@ export default function DeviceDetailPage() {
         };
 
         fetchHistory();
+    }, [deviceId, historyPage]);
+
+    useEffect(() => {
+        const handleNewSensorData = (newData) => {
+            if (newData.deviceId !== deviceId) return;
+
+            setHistoryTotalCount((prev) => prev + 1);
+
+            if (historyPage !== 1) return;
+
+            setHistory((prev) => {
+                const exists = prev.some((x) => x.id === newData.id);
+
+                if (exists) return prev;
+
+                return [newData, ...prev].slice(0, historyPageSize);
+            });
+        };
+
+        onSignalR("ReceiveSensorData", handleNewSensorData);
+
+        return () => {
+            offSignalR("ReceiveSensorData", handleNewSensorData);
+        };
     }, [deviceId, historyPage]);
 
     const sensors = device?.sensors || [];
@@ -248,6 +275,8 @@ export default function DeviceDetailPage() {
                     page={historyPage}
                     totalPages={historyTotalPages}
                     onPageChange={setHistoryPage}
+                    pageSize={historyPageSize}
+                    totalCount={historyTotalCount}
                 />
             )}
             {(modal?.type === "add" || modal?.type === "edit") && (

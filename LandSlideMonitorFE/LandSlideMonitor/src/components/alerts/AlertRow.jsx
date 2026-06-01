@@ -1,6 +1,6 @@
 import { useState } from "react";
 import DataStatusBadge from "./DataStatusBadge";
-
+import { SENSOR_LABELS } from "../../constants/sensorConfig";
 /**
  * AlertRow — một hàng trong bảng cảnh báo, có thể mở rộng để xem chi tiết jsonData.
  */
@@ -14,18 +14,6 @@ export default function AlertRow({ alert, index }) {
             return null;
         }
     })();
-
-    const SENSOR_LABELS = {
-        soil_m: { label: "Độ ẩm đất", unit: "%", icon: "water_drop" },
-        vib: { label: "Rung động", unit: "g", icon: "vibration" },
-        tilt: { label: "Độ nghiêng", unit: "°", icon: "screen_rotation" },
-        alt: { label: "Độ cao", unit: "m", icon: "landscape" },
-        satellites: { label: "Vệ tinh GPS", unit: "", icon: "satellite_alt" },
-        t_disp: { label: "Dịch chuyển", unit: "mm", icon: "open_with" },
-        lat: { label: "Vĩ độ", unit: "", icon: "my_location" },
-        lon: { label: "Kinh độ", unit: "", icon: "my_location" },
-        fix_type: { label: "GPS Fix", unit: "", icon: "gps_fixed" },
-    };
 
     const formattedTime = new Date(alert.timestamp).toLocaleString("vi-VN", {
         day: "2-digit",

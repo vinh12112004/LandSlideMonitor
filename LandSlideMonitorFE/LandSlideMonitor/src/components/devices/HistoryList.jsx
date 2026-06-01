@@ -1,7 +1,7 @@
 import { useState } from "react";
 import JsonViewer from "./JsonViewer";
 import { DATA_STATUS_CONFIG } from "../../constants/sensorConfig";
-
+import Pagination from "../common/Pagination";
 const HistoryList = ({
     history,
     formatTime,
@@ -9,6 +9,8 @@ const HistoryList = ({
     page = 1,
     totalPages = 1,
     onPageChange,
+    totalCount = 0,
+    pageSize = 10,
 }) => {
     const [historyFilter, setHistoryFilter] = useState("all");
 
@@ -206,53 +208,13 @@ const HistoryList = ({
                 )}
             </div>
 
-            <div
-                style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    marginTop: 16,
-                }}
-            >
-                <button
-                    onClick={() => onPageChange?.(Math.max(1, page - 1))}
-                    disabled={page <= 1}
-                    style={{
-                        padding: "6px 12px",
-                        borderRadius: 8,
-                        border: "0.5px solid var(--color-border-tertiary)",
-                        background: "none",
-                        cursor: page <= 1 ? "not-allowed" : "pointer",
-                        color: "var(--color-text-secondary)",
-                    }}
-                >
-                    Trước
-                </button>
-                <span
-                    style={{
-                        fontSize: 13,
-                        color: "var(--color-text-secondary)",
-                    }}
-                >
-                    Trang {page} / {totalPages}
-                </span>
-                <button
-                    onClick={() =>
-                        onPageChange?.(Math.min(totalPages, page + 1))
-                    }
-                    disabled={page >= totalPages}
-                    style={{
-                        padding: "6px 12px",
-                        borderRadius: 8,
-                        border: "0.5px solid var(--color-border-tertiary)",
-                        background: "none",
-                        cursor: page >= totalPages ? "not-allowed" : "pointer",
-                        color: "var(--color-text-secondary)",
-                    }}
-                >
-                    Sau
-                </button>
-            </div>
+            <Pagination
+                currentPage={page}
+                totalPages={totalPages}
+                total={totalCount}
+                pageSize={pageSize}
+                onPageChange={onPageChange}
+            />
         </div>
     );
 };

@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import sensordataService from "../services/sensordataService";
 import DataStatusBadge from "../components/alerts/DataStatusBadge";
 import AlertsTable from "../components/alerts/AlertsTable";
-
+import Pagination from "../components/common/Pagination";
 const LIMIT = 10;
 
 // Thống kê nhanh ở đầu trang
@@ -27,54 +27,6 @@ function StatCard({ icon, label, value, colorClass, bgClass }) {
                 </p>
                 <p className="text-xs text-slate-400 mt-0.5">{label}</p>
             </div>
-        </div>
-    );
-}
-
-// Thanh phân trang
-function Pagination({ currentPage, totalPages, onPageChange }) {
-    if (totalPages <= 1) return null;
-    const pages = Array.from({ length: totalPages }, (_, i) => i + 1);
-
-    return (
-        <div className="flex items-center justify-center gap-1 pt-4">
-            <button
-                onClick={() => onPageChange(currentPage - 1)}
-                disabled={currentPage === 1}
-                className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:bg-slate-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-            >
-                <span
-                    className="material-symbols-outlined"
-                    style={{ fontSize: 18 }}
-                >
-                    chevron_left
-                </span>
-            </button>
-            {pages.map((p) => (
-                <button
-                    key={p}
-                    onClick={() => onPageChange(p)}
-                    className={`w-8 h-8 rounded-lg text-sm font-semibold transition-colors ${
-                        p === currentPage
-                            ? "bg-blue-600 text-white shadow"
-                            : "text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700"
-                    }`}
-                >
-                    {p}
-                </button>
-            ))}
-            <button
-                onClick={() => onPageChange(currentPage + 1)}
-                disabled={currentPage === totalPages}
-                className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:bg-slate-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-            >
-                <span
-                    className="material-symbols-outlined"
-                    style={{ fontSize: 18 }}
-                >
-                    chevron_right
-                </span>
-            </button>
         </div>
     );
 }
@@ -265,31 +217,22 @@ export default function AlertsPage() {
             </div>
 
             {/* Table */}
-            <AlertsTable
-                alerts={data?.data ?? []}
-                loading={loading}
-                indexOffset={(appliedFilters.page - 1) * LIMIT}
-            />
-            {data && (
-                <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-outline-variant/10 bg-surface-container-lowest px-5 py-4">
-                    <p className="text-xs text-on-surface-variant">
-                        Tổng{" "}
-                        <span className="font-semibold text-on-surface">
-                            {data.totalCount}
-                        </span>{" "}
-                        bản ghi — Trang{" "}
-                        <span className="font-semibold text-on-surface">
-                            {data.currentPage}
-                        </span>{" "}
-                        / {data.totalPages}
-                    </p>
+            <div className="bg-surface-container-lowest rounded-3xl overflow-hidden shadow-sm border border-outline-variant/10">
+                <AlertsTable
+                    alerts={data?.data ?? []}
+                    loading={loading}
+                    indexOffset={(appliedFilters.page - 1) * LIMIT}
+                />
+                {data && (
                     <Pagination
                         currentPage={data.currentPage}
                         totalPages={data.totalPages}
                         onPageChange={handlePageChange}
+                        pageSize={LIMIT}
+                        total={data.totalCount}
                     />
-                </div>
-            )}
+                )}
+            </div>
         </main>
     );
 }

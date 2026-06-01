@@ -3,6 +3,7 @@ import { MapContainer, TileLayer, LayersControl, useMap } from "react-leaflet";
 import { GeoSearchControl, OpenStreetMapProvider } from "leaflet-geosearch";
 import "leaflet-geosearch/dist/geosearch.css";
 import DeviceMarker from "./DeviceMarker";
+import ProvinceBoundary from "./ProvinceBoundary";
 
 class VietnamMapProvider extends OpenStreetMapProvider {
     async search({ query }) {
@@ -63,7 +64,7 @@ function SearchField() {
     return null;
 }
 
-export default function MapView({ mapData }) {
+export default function MapView({ mapData, provinces, selectedProvince }) {
     const mapCenter =
         mapData.length > 0
             ? [mapData[0].latitude, mapData[0].longitude]
@@ -109,6 +110,10 @@ export default function MapView({ mapData }) {
 
             {/* Thanh tìm kiếm */}
             <SearchField />
+            <ProvinceBoundary
+                selectedProvince={selectedProvince}
+                provinces={provinces}
+            />
         </MapContainer>
     );
 }

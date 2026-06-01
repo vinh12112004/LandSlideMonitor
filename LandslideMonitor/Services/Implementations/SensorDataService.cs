@@ -5,6 +5,7 @@ using LandslideMonitor.Helpers;
 using LandslideMonitor.Models;
 using LandslideMonitor.Repositories.Interfaces;
 using LandslideMonitor.Services.Interfaces;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
@@ -14,11 +15,13 @@ public class SensorDataService : ISensorDataService
 {
     private readonly ISensorDataRepository _sensorDataRepo;
     private readonly AppDbContext _db;
+    private readonly IMemoryCache _cache;
 
-    public SensorDataService(ISensorDataRepository sensorDataRepo, AppDbContext db)
+    public SensorDataService(ISensorDataRepository sensorDataRepo, AppDbContext db, IMemoryCache cache)
     {
         _sensorDataRepo = sensorDataRepo;
         _db = db;
+        _cache = cache;
     }
 
     public async Task<List<SensorData>> GetLatestAsync(int limit)
@@ -37,8 +40,8 @@ public class SensorDataService : ISensorDataService
 
         if (device == null) return null;
 
-        // 2. Lấy toàn bộ Threshold
-        var allThresholds = await _db.Thresholds.ToListAsync();
+        // 2. Lấy Threshold từ cache vì dữ liệu này ít thay đổi
+        var thresholdsByChannel = await GetThresholdsByChannelAsync();
 
         // 3. Tính recordStatus và cập nhật Sensor.Status
         var recordStatus = DataStatus.Normal;
@@ -46,7 +49,6 @@ public class SensorDataService : ISensorDataService
 
         foreach (var sensor in device.Sensors)
         {
-            // Mặc định nếu không thấy kênh hợp lệ
             if (sensor.SensorChannels == null || sensor.SensorChannels.Count == 0)
             {
                 sensor.Status = SensorStatus.Missing;
@@ -54,6 +56,7 @@ public class SensorDataService : ISensorDataService
             }
 
             var sensorLevel = (byte)0;
+            var hasValidChannel = false;
 
             foreach (var channel in sensor.SensorChannels)
             {
@@ -61,16 +64,10 @@ public class SensorDataService : ISensorDataService
                 var channelName = channel.ChannelDefinition?.Name ?? dataKey ?? "Unknown";
 
                 if (string.IsNullOrWhiteSpace(dataKey))
-                {
-                    sensor.Status = SensorStatus.Missing;
                     continue;
-                }
 
                 if (!dto.Data.TryGetValue(dataKey, out var valNullable))
-                {
-                    sensor.Status = SensorStatus.Missing;
                     continue;
-                }
 
                 if (valNullable == null)
                 {
@@ -78,29 +75,41 @@ public class SensorDataService : ISensorDataService
                     continue;
                 }
 
+                hasValidChannel = true;
+
                 double val = valNullable.Value;
-                sensor.Status = SensorStatus.Active;
 
-                var thresholdsForChannel = allThresholds
-                    .Where(t => t.channelDefinitionid == channel.ChannelDefinitionId);
+                var channelLevel = (byte)0;
 
-                foreach (var th in thresholdsForChannel)
+                if (thresholdsByChannel.TryGetValue(channel.ChannelDefinitionId, out var thresholdsForChannel))
                 {
-                    if (val >= th.ThresholdValue && th.Level > sensorLevel)
+                    foreach (var th in thresholdsForChannel)
                     {
-                        sensorLevel = th.Level;
+                        if (th.Level == 0) continue;
+
+                        if (val >= th.ThresholdValue && th.Level > channelLevel)
+                        {
+                            channelLevel = th.Level;
+                        }
                     }
                 }
 
-                if (sensorLevel == 1)
+                if (channelLevel > sensorLevel)
+                {
+                    sensorLevel = channelLevel;
+                }
+
+                if (channelLevel == 1)
                 {
                     reasons.Add($"{channelName} vượt ngưỡng cảnh báo");
                 }
-                else if (sensorLevel >= 2)
+                else if (channelLevel >= 2)
                 {
                     reasons.Add($"{channelName} vượt ngưỡng báo động");
                 }
             }
+
+            sensor.Status = hasValidChannel ? SensorStatus.Active : SensorStatus.Missing;
 
             if (sensorLevel >= 2)
                 recordStatus = DataStatus.Alert;
@@ -174,4 +183,30 @@ public class SensorDataService : ISensorDataService
     {
         return await _sensorDataRepo.GetLatestForAllDevicesAsync(provinceId);
     }
+
+    private async Task<Dictionary<int, List<ThresholdCacheItem>>> GetThresholdsByChannelAsync()
+    {
+        return await _cache.GetOrCreateAsync(CacheKeys.ThresholdsByChannel, async entry =>
+        {
+            entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(30);
+            entry.SlidingExpiration = TimeSpan.FromMinutes(10);
+
+            var thresholds = await _db.Thresholds
+                .AsNoTracking()
+                .Select(t => new ThresholdCacheItem(
+                    t.channelDefinitionid,
+                    t.Level,
+                    t.ThresholdValue))
+                .ToListAsync();
+
+            return thresholds
+                .GroupBy(t => t.ChannelDefinitionId)
+                .ToDictionary(g => g.Key, g => g.ToList());
+        }) ?? new Dictionary<int, List<ThresholdCacheItem>>();
+    }
+
+    private sealed record ThresholdCacheItem(
+        int ChannelDefinitionId,
+        byte Level,
+        double ThresholdValue);
 }

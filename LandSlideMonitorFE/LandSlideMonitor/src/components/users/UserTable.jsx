@@ -41,7 +41,14 @@ export default function UserTable({ users, onEdit, getProvinceName, loading }) {
         {
             key: "provinceIds",
             label: "Tỉnh / Thành phố quản lý",
-            render: (value) => {
+            render: (value, row) => {
+                if (row.role === "Admin") {
+                    return (
+                        <span className="text-on-surface-variant text-xs font-semibold">
+                            Tất cả
+                        </span>
+                    );
+                }
                 if (!value || value.length === 0) {
                     return (
                         <span className="text-on-surface-variant/50 italic text-xs">

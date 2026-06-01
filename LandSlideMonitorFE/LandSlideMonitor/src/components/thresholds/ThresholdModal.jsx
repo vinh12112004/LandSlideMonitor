@@ -54,7 +54,7 @@ export default function ThresholdModal({
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
                         <label className="text-xs font-bold block mb-1">
-                            Channel
+                            Kênh
                         </label>
                         <select
                             name="channelDefinitionId"
@@ -73,7 +73,7 @@ export default function ThresholdModal({
 
                     <div>
                         <label className="text-xs font-bold block mb-1">
-                            Threshold Value
+                            Giá trị ngưỡng
                         </label>
                         <input
                             name="thresholdValue"
@@ -87,7 +87,7 @@ export default function ThresholdModal({
 
                     <div>
                         <label className="text-xs font-bold block mb-1">
-                            Level
+                            Mức
                         </label>
                         <select
                             name="level"
@@ -105,7 +105,7 @@ export default function ThresholdModal({
 
                     <div>
                         <label className="text-xs font-bold block mb-1">
-                            Note
+                            Ghi chú
                         </label>
                         <textarea
                             name="note"

@@ -20,7 +20,7 @@ export default function LoginPage({ onLoginSuccess }) {
             await login(identity, password);
             console.log("Đăng nhập thành công");
             onLoginSuccess();
-            navigate("/monitoring");
+            navigate("/devices");
         } catch (err) {
             console.error("Đăng nhập thất bại", err);
             setError(

@@ -5,7 +5,7 @@ import deviceService from "../services/deviceService";
 import { getConnection } from "../services/signalr";
 import AddEditDeviceModal from "../components/devices/AddEditDeviceModal";
 import { getProvinces } from "../services/provinceService";
-import HistoryPagination from "../components/history/HistoryPagination"; // Tái sử dụng component phân trang
+import Pagination from "../components/common/Pagination";
 import DeviceFilters from "../components/devices/DeviceFilters";
 import { getCurrentUser } from "../services/authService";
 
@@ -308,7 +308,7 @@ export default function DevicesPage() {
                         deletingId={deletingId}
                     />
 
-                    <HistoryPagination
+                    <Pagination
                         currentPage={pagination.currentPage}
                         totalPages={pagination.totalPages}
                         total={pagination.totalCount}

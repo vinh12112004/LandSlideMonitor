@@ -1,18 +1,7 @@
 import { useState } from "react";
 import DataTable from "../ui/DataTable";
 import DataStatusBadge from "./DataStatusBadge";
-
-const SENSOR_LABELS = {
-    soil_m: { label: "Độ ẩm đất", unit: "%", icon: "water_drop" },
-    vib: { label: "Rung động", unit: "g", icon: "vibration" },
-    tilt: { label: "Độ nghiêng", unit: "°", icon: "screen_rotation" },
-    alt: { label: "Độ cao", unit: "m", icon: "landscape" },
-    satellites: { label: "Vệ tinh GPS", unit: "", icon: "satellite_alt" },
-    t_disp: { label: "Dịch chuyển", unit: "mm", icon: "open_with" },
-    lat: { label: "Vĩ độ", unit: "", icon: "my_location" },
-    lon: { label: "Kinh độ", unit: "", icon: "my_location" },
-    fix_type: { label: "GPS Fix", unit: "", icon: "gps_fixed" },
-};
+import { SENSOR_LABELS } from "../../constants/sensorConfig";
 
 function SensorDetailRow({ jsonData }) {
     const parsed = (() => {

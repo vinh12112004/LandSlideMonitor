@@ -3,7 +3,7 @@ import userService from "../services/userService";
 import { getProvinces } from "../services/provinceService";
 import UserTable from "../components/users/UserTable";
 import AddEditUserModal from "../components/users/AddEditUserModal";
-import HistoryPagination from "../components/history/HistoryPagination";
+import Pagination from "../components/common/Pagination";
 import UserFilters from "../components/users/UserFilters";
 
 export default function UsersPage() {
@@ -204,7 +204,7 @@ export default function UsersPage() {
                     onEdit={handleOpenEditModal}
                     getProvinceName={getProvinceName}
                 />
-                <HistoryPagination
+                <Pagination
                     currentPage={pagination.currentPage}
                     totalPages={pagination.totalPages}
                     total={pagination.totalCount}
