@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import Button from "../components/ui/Button";
+import Input from "../components/ui/Input";
 import { login } from "../services/authService";
 
 export default function LoginPage({ onLoginSuccess }) {
@@ -8,17 +10,15 @@ export default function LoginPage({ onLoginSuccess }) {
     const [remember, setRemember] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(null);
-
     const navigate = useNavigate();
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
+    const handleSubmit = async (event) => {
+        event.preventDefault();
         setIsLoading(true);
         setError(null);
 
         try {
             await login(identity, password);
-            console.log("Đăng nhập thành công");
             onLoginSuccess();
             navigate("/devices");
         } catch (err) {
@@ -32,150 +32,101 @@ export default function LoginPage({ onLoginSuccess }) {
     };
 
     return (
-        <div className="bg-surface font-body text-on-surface min-h-screen flex flex-col sentient-gradient">
-            <div className="fixed bottom-0 left-0 w-full h-full z-0 opacity-30 pointer-events-none">
+        <div className="relative min-h-screen overflow-hidden bg-surface text-on-surface">
+            <div className="absolute inset-0 opacity-25">
                 <img
-                    className="w-full h-full object-cover"
+                    className="h-full w-full object-cover"
                     src="https://lh3.googleusercontent.com/aida-public/AB6AXuBppTjXcpk_A1m88vnw4xoHlhMTSRzdGDPKer8pbWNppKYy5melHDKNC9W_lebXvIHAXwR_a7BE3xkDdZq8V8YDlAIxgcaaEx-ZMB7cHPjw2t56jxL7FQMsgale3Z5FTKdVnILTXi5oUMUJUKYgT7aMEcLQ4tBoiNXfX4thCQwVZnsxp1fBykE1ABj004t6W05ADuPEN6FXMiR3w-XTlY9zN0PRHcFyJ_youYnyMW08hnqKjYvVyIcEglWVZmP4tDoWOQcpBD2dZ5-D"
-                    alt="topography"
+                    alt=""
+                    aria-hidden="true"
                 />
             </div>
-
-            <main className="flex-grow flex items-center justify-center p-6 sm:p-12">
-                <div className="w-full max-w-md bg-surface-container-lowest rounded-xl p-8 sm:p-10 ambient-shadow relative z-10">
-                    <div className="flex flex-col items-center mb-10 text-center">
-                        <div className="mb-4 text-primary">
+            <main className="relative z-10 flex min-h-screen items-center justify-center px-4 py-10 sm:px-8">
+                <section className="w-full max-w-md rounded-lg border border-outline-variant/30 bg-surface-container-lowest/95 p-8 shadow-2xl backdrop-blur sm:p-10">
+                    <div className="mb-8 text-center">
+                        <div className="mb-4 inline-flex h-14 w-14 items-center justify-center rounded-lg bg-primary-container/25 text-primary">
                             <span
-                                className="material-symbols-outlined text-5xl"
+                                className="material-symbols-outlined text-4xl"
                                 style={{ fontVariationSettings: '"FILL" 1' }}
+                                aria-hidden="true"
                             >
                                 landscape
                             </span>
                         </div>
-                        <h1 className="font-headline font-extrabold text-2xl text-on-surface tracking-tighter mb-2">
+                        <h1 className="text-2xl font-extrabold tracking-tight text-on-surface">
                             Hệ thống giám sát sạt lở
                         </h1>
+                        <p className="mt-2 text-sm text-on-surface-variant">
+                            Đăng nhập để quản lý thiết bị, cảnh báo và cấu hình
+                            ngưỡng.
+                        </p>
                     </div>
 
                     {error && (
-                        <div className="mb-6 bg-error-container/20 border border-error/10 rounded-lg p-3 flex items-center gap-3">
-                            <span className="material-symbols-outlined text-error text-lg">
+                        <div
+                            className="mb-5 flex items-start gap-3 rounded-lg border border-error/20 bg-error-container/25 p-3 text-sm text-on-error-container"
+                            role="alert"
+                        >
+                            <span
+                                className="material-symbols-outlined text-error"
+                                aria-hidden="true"
+                            >
                                 error
                             </span>
-                            <p className="text-on-error-container text-xs font-medium">
-                                {error}
-                            </p>
+                            <p>{error}</p>
                         </div>
                     )}
 
-                    <form className="space-y-6" onSubmit={handleSubmit}>
-                        <div className="space-y-2">
-                            <label
-                                className="block text-xs font-semibold text-on-surface-variant ml-1 font-label"
-                                htmlFor="identity"
-                            >
-                                Tên đăng nhập
-                            </label>
-                            <div className="relative">
-                                <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline text-lg">
-                                    person
-                                </span>
-                                <input
-                                    className="w-full pl-12 pr-4 py-3.5 bg-surface-container-highest/50 border-none rounded-xl focus:ring-2 focus:ring-primary/30 focus:bg-surface-container-lowest transition-all text-sm outline-none placeholder:text-outline/60"
-                                    id="identity"
-                                    placeholder="Nhập tên đăng nhập của bạn"
-                                    type="text"
-                                    value={identity}
-                                    onChange={(e) =>
-                                        setIdentity(e.target.value)
-                                    }
-                                    autoComplete="username"
-                                />
-                            </div>
-                        </div>
+                    <form className="space-y-5" onSubmit={handleSubmit}>
+                        <Input
+                            label="Tên đăng nhập"
+                            id="identity"
+                            icon="person"
+                            placeholder="Nhập tên đăng nhập của bạn"
+                            type="text"
+                            value={identity}
+                            onChange={(event) => setIdentity(event.target.value)}
+                            autoComplete="username"
+                            required
+                        />
+                        <Input
+                            label="Mật khẩu"
+                            id="password"
+                            icon="lock"
+                            placeholder="••••••••"
+                            type="password"
+                            value={password}
+                            onChange={(event) => setPassword(event.target.value)}
+                            autoComplete="current-password"
+                            required
+                        />
 
-                        <div className="space-y-2">
-                            <div className="flex justify-between items-end px-1">
-                                <label
-                                    className="block text-xs font-semibold text-on-surface-variant font-label"
-                                    htmlFor="password"
-                                >
-                                    Mật khẩu
-                                </label>
-                            </div>
-                            <div className="relative">
-                                <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline text-lg">
-                                    lock
-                                </span>
-                                <input
-                                    className="w-full pl-12 pr-4 py-3.5 bg-surface-container-highest/50 border-none rounded-xl focus:ring-2 focus:ring-primary/30 focus:bg-surface-container-lowest transition-all text-sm outline-none placeholder:text-outline/60"
-                                    id="password"
-                                    placeholder="••••••••"
-                                    type="password"
-                                    value={password}
-                                    onChange={(e) =>
-                                        setPassword(e.target.value)
-                                    }
-                                    autoComplete="current-password"
-                                />
-                            </div>
-                        </div>
-
-                        <div className="flex items-center gap-3 px-1">
-                            <div className="relative flex items-center">
-                                <input
-                                    className="w-5 h-5 rounded border-outline-variant text-primary focus:ring-primary/20 bg-surface-container-highest/50 cursor-pointer"
-                                    id="remember"
-                                    type="checkbox"
-                                    checked={remember}
-                                    onChange={(e) =>
-                                        setRemember(e.target.checked)
-                                    }
-                                />
-                            </div>
-                            <label
-                                className="text-sm text-on-surface-variant cursor-pointer select-none"
-                                htmlFor="remember"
-                            >
-                                Ghi nhớ thiết bị này
-                            </label>
-                        </div>
-
-                        <button
-                            className="w-full bg-gradient-to-br from-primary to-primary-container text-on-primary py-4 rounded-xl font-semibold shadow-lg hover:shadow-primary/20 active:scale-[0.98] transition-all flex items-center justify-center gap-3 disabled:opacity-70"
-                            type="submit"
-                            disabled={isLoading}
+                        <label
+                            className="flex cursor-pointer items-center gap-3 text-sm text-on-surface-variant"
+                            htmlFor="remember"
                         >
-                            {isLoading ? (
-                                <>
-                                    <svg
-                                        className="animate-spin h-5 w-5 text-on-primary"
-                                        fill="none"
-                                        viewBox="0 0 24 24"
-                                        xmlns="http://www.w3.org/2000/svg"
-                                    >
-                                        <circle
-                                            className="opacity-25"
-                                            cx="12"
-                                            cy="12"
-                                            r="10"
-                                            stroke="currentColor"
-                                            strokeWidth="4"
-                                        ></circle>
-                                        <path
-                                            className="opacity-75"
-                                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                                            fill="currentColor"
-                                        ></path>
-                                    </svg>
-                                    <span>Đang đăng nhập...</span>
-                                </>
-                            ) : (
-                                <span>Đăng nhập</span>
-                            )}
-                        </button>
+                            <input
+                                className="h-4 w-4 rounded border-outline-variant text-primary focus:ring-primary/25"
+                                id="remember"
+                                type="checkbox"
+                                checked={remember}
+                                onChange={(event) =>
+                                    setRemember(event.target.checked)
+                                }
+                            />
+                            Ghi nhớ thiết bị này
+                        </label>
+
+                        <Button
+                            type="submit"
+                            isLoading={isLoading}
+                            className="w-full"
+                            size="lg"
+                        >
+                            {isLoading ? "Đang đăng nhập..." : "Đăng nhập"}
+                        </Button>
                     </form>
-                </div>
+                </section>
             </main>
         </div>
     );

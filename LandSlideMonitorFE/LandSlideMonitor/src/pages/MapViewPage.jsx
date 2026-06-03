@@ -1,130 +1,45 @@
-import { useState, useEffect } from "react";
-import deviceService from "../services/deviceService";
-import sensordataService from "../services/sensordataService";
-import { injectMarkerStyles } from "../utils/map-helpers";
+import { useEffect, useState } from "react";
 import MapView from "../components/map/MapView";
-import { getProvinces } from "../services/provinceService";
 import ProvinceFilter from "../components/map/ProvinceFilter";
+import EmptyState from "../components/ui/EmptyState";
+import LoadingState from "../components/ui/LoadingState";
+import { useMapData } from "../features/map/useMapData";
+import { useProvinces } from "../hooks/useProvinces";
+import { injectMarkerStyles } from "../utils/map-helpers";
 
 export default function MapViewPage() {
-    const [mapData, setMapData] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
-    const [provinces, setProvinces] = useState([]);
     const [selectedProvince, setSelectedProvince] = useState("all");
+    const { provinces } = useProvinces();
+    const { mapData, loading, error, refetch } = useMapData(selectedProvince);
 
     useEffect(() => {
         injectMarkerStyles();
-
-        const fetchProvinces = async () => {
-            try {
-                const data = await getProvinces();
-                setProvinces(data);
-            } catch (err) {
-                console.error("Failed to fetch provinces", err);
-            }
-        };
-
-        fetchProvinces();
     }, []);
-
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                setLoading(true);
-                setError(null);
-
-                const provinceId =
-                    selectedProvince === "all" ? null : selectedProvince;
-
-                const [devicesResponse, allLatestSensorData] =
-                    await Promise.all([
-                        deviceService.getAll({
-                            pageNumber: 1,
-                            pageSize: 9999,
-                            provinceId,
-                        }),
-                        sensordataService.getLatestForAll({ provinceId }),
-                    ]);
-
-                const devices = devicesResponse.data;
-                const sensorDataMap = new Map(
-                    allLatestSensorData.map((data) => [data.deviceId, data]),
-                );
-
-                const mergedData = devices
-                    .map((device) => {
-                        const sensorData = sensorDataMap.get(device.deviceId);
-                        const latitude =
-                            sensorData?.latitude ?? device.lastLatitude;
-                        const longitude =
-                            sensorData?.longitude ?? device.lastLongitude;
-
-                        if (latitude && longitude) {
-                            return {
-                                deviceId: device.deviceId,
-                                name: device.name,
-                                provinceName: device.provinceName,
-                                deviceStatus: device.status,
-                                latitude: latitude,
-                                longitude: longitude,
-                                soilMoisture: sensorData?.soilMoisture,
-                                accelX: sensorData?.accelX,
-                                accelY: sensorData?.accelY,
-                                accelZ: sensorData?.accelZ,
-                                timestamp: sensorData?.timestamp,
-                                dataStatus: sensorData?.status,
-                            };
-                        }
-                        return null;
-                    })
-                    .filter(Boolean);
-
-                setMapData(mergedData);
-            } catch (err) {
-                setError("Failed to load map data. Please try again later.");
-                console.error(err);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchData();
-    }, [selectedProvince]);
 
     if (loading) {
         return (
-            <main className="ml-64 p-10 bg-surface min-h-[calc(100vh-64px)] flex items-center justify-center">
-                <div className="text-center">
-                    <span className="material-symbols-outlined text-5xl text-primary animate-spin block mb-4">
-                        progress_activity
-                    </span>
-                    <p className="text-on-surface-variant text-sm">
-                        Loading Map Data...
-                    </p>
-                </div>
-            </main>
+            <section className="page-shell">
+                <LoadingState message="Đang tải dữ liệu bản đồ..." />
+            </section>
         );
     }
 
     if (error) {
         return (
-            <main className="ml-64 p-10 bg-surface min-h-[calc(100vh-64px)] flex items-center justify-center">
-                <div className="text-center">
-                    <span className="material-symbols-outlined text-5xl text-tertiary block mb-4">
-                        error_outline
-                    </span>
-                    <p className="text-on-surface font-bold mb-2">
-                        An Error Occurred
-                    </p>
-                    <p className="text-on-surface-variant text-sm">{error}</p>
-                </div>
-            </main>
+            <section className="page-shell">
+                <EmptyState
+                    icon="error_outline"
+                    title="Không thể tải bản đồ"
+                    description={error}
+                    actionLabel="Thử lại"
+                    onAction={refetch}
+                />
+            </section>
         );
     }
 
     return (
-        <main className="ml-64 h-[calc(100vh-64px)]">
+        <section className="relative h-[calc(100vh-4rem)] overflow-hidden lg:h-screen">
             <ProvinceFilter
                 provinces={provinces}
                 selectedProvince={selectedProvince}
@@ -135,6 +50,6 @@ export default function MapViewPage() {
                 provinces={provinces}
                 selectedProvince={selectedProvince}
             />
-        </main>
+        </section>
     );
 }

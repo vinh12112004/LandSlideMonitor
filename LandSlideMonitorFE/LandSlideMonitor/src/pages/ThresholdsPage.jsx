@@ -1,11 +1,15 @@
-import { useEffect, useMemo, useState } from "react";
-import thresholdService from "../services/thresholdService";
-import channelDefinitionService from "../services/channelDefinitionService";
-import ThresholdModal from "../components/thresholds/ThresholdModal";
+import { useMemo, useState } from "react";
 import SensorTypeModal from "../components/thresholds/SensorTypeModal";
+import ThresholdModal from "../components/thresholds/ThresholdModal";
+import Button from "../components/ui/Button";
+import ConfirmDialog from "../components/ui/ConfirmDialog";
 import DataTable from "../components/ui/DataTable";
+import EmptyState from "../components/ui/EmptyState";
+import LoadingState from "../components/ui/LoadingState";
+import Select from "../components/ui/Select";
+import { TabButton, Tabs } from "../components/ui/Tabs";
+import { useThresholds } from "../features/thresholds/useThresholds";
 
-// ── Constants ────────────────────────────────────────────────────────────────
 const LEVELS = [
     {
         value: 0,
@@ -20,19 +24,22 @@ const LEVELS = [
     {
         value: 2,
         label: "Nguy hiểm",
-        color: "text-rose-700 bg-rose-50 ring-rose-200",
+        color: "text-red-700 bg-red-50 ring-red-200",
     },
 ];
 
-// ── Small UI helpers ─────────────────────────────────────────────────────────
 function LevelBadge({ value }) {
-    const type = LEVELS.find((x) => x.value === value);
+    const type = LEVELS.find((item) => item.value === value);
     if (!type) return null;
+
     return (
         <span
-            className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold ring-1 ${type.color}`}
+            className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ${type.color}`}
         >
-            <span className="w-1.5 h-1.5 rounded-full bg-current opacity-70" />
+            <span
+                className="h-1.5 w-1.5 rounded-full bg-current opacity-70"
+                aria-hidden="true"
+            />
             {type.label}
         </span>
     );
@@ -40,419 +47,368 @@ function LevelBadge({ value }) {
 
 function RowActions({ onEdit, onDelete }) {
     return (
-        <div className="flex items-center justify-end gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-            <button
-                onClick={onEdit}
-                className="p-1.5 rounded-lg text-primary hover:bg-primary/8 transition-colors"
-                title="Chỉnh sửa"
+        <div className="flex items-center justify-end gap-1">
+            <Button
+                variant="ghost"
+                size="icon"
+                onClick={(event) => {
+                    event.stopPropagation();
+                    onEdit();
+                }}
+                aria-label="Chỉnh sửa"
             >
-                <span className="material-symbols-outlined text-[17px]">
+                <span className="material-symbols-outlined text-[18px]">
                     edit
                 </span>
-            </button>
-            <button
-                onClick={onDelete}
-                className="p-1.5 rounded-lg text-rose-500 hover:bg-rose-50 transition-colors"
-                title="Xóa"
+            </Button>
+            <Button
+                variant="ghost"
+                size="icon"
+                onClick={(event) => {
+                    event.stopPropagation();
+                    onDelete();
+                }}
+                className="text-error hover:text-error"
+                aria-label="Xóa"
             >
-                <span className="material-symbols-outlined text-[17px]">
+                <span className="material-symbols-outlined text-[18px]">
                     delete
                 </span>
-            </button>
+            </Button>
         </div>
     );
 }
 
-// ── Tab button ───────────────────────────────────────────────────────────────
-function Tab({ active, icon, label, onClick }) {
-    return (
-        <button
-            onClick={onClick}
-            className={`flex items-center gap-1.5 px-4 py-3 text-sm font-semibold border-b-2 -mb-px transition ${
-                active
-                    ? "border-primary text-primary"
-                    : "border-transparent text-on-surface-variant hover:text-on-surface"
-            }`}
-        >
-            <span className="material-symbols-outlined text-[16px]">
-                {icon}
-            </span>
-            {label}
-        </button>
-    );
-}
-
-// ── Main Page ────────────────────────────────────────────────────────────────
 export default function ThresholdsPage() {
-    const [thresholds, setThresholds] = useState([]);
-    const [channelDefinitions, setChannelDefinitions] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [channelsLoading, setChannelsLoading] = useState(false);
-    const [error, setError] = useState(null);
-
-    const [tab, setTab] = useState("thresholds");
-    const [filterType, setFilterType] = useState("all");
-
     const [modalOpen, setModalOpen] = useState(false);
     const [editing, setEditing] = useState(null);
-    const [submitting, setSubmitting] = useState(false);
-
     const [typeModalOpen, setTypeModalOpen] = useState(false);
     const [editingType, setEditingType] = useState(null);
-    const [typeSubmitting, setTypeSubmitting] = useState(false);
+    const [deleteTarget, setDeleteTarget] = useState(null);
+    const {
+        filteredThresholds,
+        channelDefinitions,
+        loading,
+        channelsLoading,
+        error,
+        mutationError,
+        setMutationError,
+        tab,
+        setTab,
+        filterType,
+        setFilterType,
+        submitting,
+        typeSubmitting,
+        deletingId,
+        saveThreshold,
+        deleteThreshold,
+        saveChannel,
+        deleteChannel,
+        refetch,
+    } = useThresholds();
 
-    // ── Data fetching ────────────────────────────────────────────────────────
-    useEffect(() => {
-        fetchThresholds();
-        fetchChannelDefinitions();
-    }, []);
-
-    const fetchThresholds = async () => {
-        try {
-            setLoading(true);
-            const data = await thresholdService.getAll();
-            setThresholds(data);
-        } catch (err) {
-            console.error(err);
-            setError("Không thể tải cấu hình ngưỡng.");
-        } finally {
-            setLoading(false);
-        }
+    const closeThresholdModal = () => {
+        setModalOpen(false);
+        setEditing(null);
     };
 
-    const fetchChannelDefinitions = async () => {
-        try {
-            setChannelsLoading(true);
-            const data = await channelDefinitionService.getAll();
-            setChannelDefinitions(data);
-        } catch (err) {
-            console.error(err);
-        } finally {
-            setChannelsLoading(false);
-        }
+    const closeChannelModal = () => {
+        setTypeModalOpen(false);
+        setEditingType(null);
     };
 
-    // ── Derived data ─────────────────────────────────────────────────────────
-    const filteredThresholds = useMemo(() => {
-        if (filterType === "all") return thresholds;
-        return thresholds.filter(
-            (t) => t.channelDefinitionId === parseInt(filterType, 10),
-        );
-    }, [thresholds, filterType]);
-
-    // ── Handlers ─────────────────────────────────────────────────────────────
-    const handleDelete = async (id) => {
-        if (!confirm("Xóa ngưỡng này?")) return;
-        try {
-            await thresholdService.delete(id);
-            fetchThresholds();
-        } catch (err) {
-            console.error(err);
-            alert("Xóa thất bại. Vui lòng thử lại.");
-        }
-    };
-
-    const handleSave = async (form) => {
-        try {
-            setSubmitting(true);
-            if (editing) await thresholdService.update(editing.id, form);
-            else await thresholdService.create(form);
-            setModalOpen(false);
-            setEditing(null);
-            fetchThresholds();
-        } catch (err) {
-            console.error(err);
-            alert(err?.response?.data || "Lưu thất bại. Vui lòng thử lại.");
-        } finally {
-            setSubmitting(false);
-        }
-    };
-
-    const handleDeleteChannel = async (id) => {
-        if (!confirm("Xóa channel này?")) return;
-        try {
-            await channelDefinitionService.delete(id);
-            fetchChannelDefinitions();
-        } catch (err) {
-            console.error(err);
-            alert("Xóa thất bại. Vui lòng thử lại.");
-        }
+    const handleSaveThreshold = async (form) => {
+        const saved = await saveThreshold(form, editing);
+        if (saved) closeThresholdModal();
     };
 
     const handleSaveChannel = async (form) => {
-        try {
-            setTypeSubmitting(true);
-            if (editingType)
-                await channelDefinitionService.update(editingType.id, form);
-            else await channelDefinitionService.create(form);
-            setTypeModalOpen(false);
-            setEditingType(null);
-            fetchChannelDefinitions();
-        } catch (err) {
-            console.error(err);
-            alert(err?.response?.data || "Lưu thất bại. Vui lòng thử lại.");
-        } finally {
-            setTypeSubmitting(false);
-        }
+        const saved = await saveChannel(form, editingType);
+        if (saved) closeChannelModal();
     };
 
-    // ── Column definitions ────────────────────────────────────────────────────
-    const thresholdColumns = [
-        {
-            key: "channelName",
-            label: "Kênh",
-            className: "font-semibold text-on-surface",
-        },
-        {
-            key: "dataKey",
-            label: "Khóa dữ liệu",
-            render: (value) => (
-                <span className="font-mono text-[12px] text-on-surface-variant bg-surface-container px-2 py-0.5 rounded-md">
-                    {value}
-                </span>
-            ),
-        },
-        {
-            key: "thresholdValue",
-            label: "Ngưỡng",
-            className: "tabular-nums text-on-surface",
-        },
-        {
-            key: "level",
-            label: "Mức",
-            render: (value) => <LevelBadge value={value} />,
-        },
-        {
-            key: "unitSymbol",
-            label: "Đơn vị",
-            className: "font-semibold text-on-surface-variant",
-        },
-        {
-            key: "note",
-            label: "Ghi chú",
-            className: "text-on-surface-variant max-w-xs truncate",
-            render: (value) => value || <span className="opacity-40">—</span>,
-        },
-        {
-            key: "_actions",
-            label: "",
-            align: "right",
-            render: (_, row) => (
-                <RowActions
-                    onEdit={() => {
-                        setEditing(row);
-                        setModalOpen(true);
-                    }}
-                    onDelete={() => handleDelete(row.id)}
-                />
-            ),
-        },
-    ];
+    const handleConfirmDelete = async () => {
+        if (!deleteTarget) return;
+        const deleted =
+            deleteTarget.kind === "threshold"
+                ? await deleteThreshold(deleteTarget.id)
+                : await deleteChannel(deleteTarget.id);
+        if (deleted) setDeleteTarget(null);
+    };
 
-    const channelColumns = [
-        {
-            key: "name",
-            label: "Tên",
-            className: "font-semibold text-on-surface",
-        },
-        {
-            key: "dataKey",
-            label: "Khóa dữ liệu",
-            render: (value) => (
-                <span className="font-mono text-[12px] text-on-surface-variant bg-surface-container px-2 py-0.5 rounded-md">
-                    {value}
-                </span>
-            ),
-        },
-        {
-            key: "unitSymbol",
-            label: "Đơn vị",
-            className: "font-semibold text-on-surface-variant",
-        },
-        {
-            key: "_actions",
-            label: "",
-            align: "right",
-            render: (_, row) => (
-                <RowActions
-                    onEdit={() => {
-                        setEditingType(row);
-                        setTypeModalOpen(true);
-                    }}
-                    onDelete={() => handleDeleteChannel(row.id)}
-                />
-            ),
-        },
-    ];
-
-    // ── Loading / error states ───────────────────────────────────────────────
-    if (error) {
-        return (
-            <main className="ml-64 p-10 bg-surface min-h-[calc(100vh-64px)] flex items-center justify-center">
-                <div className="flex flex-col items-center gap-2 text-center">
-                    <span className="material-symbols-outlined text-4xl text-rose-400">
-                        error
+    const thresholdColumns = useMemo(
+        () => [
+            {
+                key: "channelName",
+                label: "Kênh",
+                className: "font-semibold text-on-surface",
+            },
+            {
+                key: "dataKey",
+                label: "Khóa dữ liệu",
+                render: (value) => (
+                    <span className="rounded-md bg-surface-container px-2 py-1 font-mono text-xs text-on-surface-variant">
+                        {value}
                     </span>
-                    <p className="text-on-surface-variant">{error}</p>
-                </div>
-            </main>
+                ),
+            },
+            {
+                key: "thresholdValue",
+                label: "Ngưỡng",
+                className: "tabular-nums text-on-surface",
+            },
+            {
+                key: "level",
+                label: "Mức",
+                render: (value) => <LevelBadge value={value} />,
+            },
+            {
+                key: "unitSymbol",
+                label: "Đơn vị",
+                className: "font-semibold text-on-surface-variant",
+            },
+            {
+                key: "note",
+                label: "Ghi chú",
+                className: "max-w-xs truncate text-on-surface-variant",
+                render: (value) =>
+                    value || (
+                        <span className="text-on-surface-variant/45">—</span>
+                    ),
+            },
+            {
+                key: "_actions",
+                label: "",
+                align: "right",
+                render: (_, row) => (
+                    <RowActions
+                        onEdit={() => {
+                            setEditing(row);
+                            setModalOpen(true);
+                            setMutationError(null);
+                        }}
+                        onDelete={() =>
+                            setDeleteTarget({
+                                kind: "threshold",
+                                id: row.id,
+                                label: row.channelName,
+                            })
+                        }
+                    />
+                ),
+            },
+        ],
+        [setMutationError],
+    );
+
+    const channelColumns = useMemo(
+        () => [
+            {
+                key: "name",
+                label: "Tên",
+                className: "font-semibold text-on-surface",
+            },
+            {
+                key: "dataKey",
+                label: "Khóa dữ liệu",
+                render: (value) => (
+                    <span className="rounded-md bg-surface-container px-2 py-1 font-mono text-xs text-on-surface-variant">
+                        {value}
+                    </span>
+                ),
+            },
+            {
+                key: "unitSymbol",
+                label: "Đơn vị",
+                className: "font-semibold text-on-surface-variant",
+            },
+            {
+                key: "_actions",
+                label: "",
+                align: "right",
+                render: (_, row) => (
+                    <RowActions
+                        onEdit={() => {
+                            setEditingType(row);
+                            setTypeModalOpen(true);
+                            setMutationError(null);
+                        }}
+                        onDelete={() =>
+                            setDeleteTarget({
+                                kind: "channel",
+                                id: row.id,
+                                label: row.name,
+                            })
+                        }
+                    />
+                ),
+            },
+        ],
+        [setMutationError],
+    );
+
+    if (loading && filteredThresholds.length === 0 && !error) {
+        return (
+            <section className="page-shell">
+                <LoadingState message="Đang tải cấu hình ngưỡng..." />
+            </section>
         );
     }
 
-    // ── Render ───────────────────────────────────────────────────────────────
+    if (error) {
+        return (
+            <section className="page-shell">
+                <EmptyState
+                    icon="error_outline"
+                    title="Không thể tải cấu hình"
+                    description={error}
+                    actionLabel="Thử lại"
+                    onAction={refetch}
+                />
+            </section>
+        );
+    }
+
     return (
-        <main className="ml-64 bg-surface min-h-[calc(100vh-64px)]">
-            {/* Header */}
-            <div className="px-10 pt-10 pb-6 border-b border-outline-variant/15 bg-surface-container-low/40">
-                <div className="flex flex-wrap items-start justify-between gap-6">
-                    <div>
-                        <div className="flex items-center gap-2.5 mb-1">
-                            <span className="material-symbols-outlined text-primary text-[22px]">
-                                tune
-                            </span>
-                            <h2 className="text-2xl font-bold tracking-tight text-on-surface">
-                                Cấu hình ngưỡng
-                            </h2>
-                        </div>
-                        <p className="text-sm text-on-surface-variant ml-9">
-                            Quản lý ngưỡng theo Kênh, Khóa dữ liệu và đơn vị
-                            đo{" "}
+        <section className="page-shell">
+            <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+                <div>
+                    <p className="mb-2 text-xs font-bold uppercase tracking-widest text-primary">
+                        Threshold Rules
+                    </p>
+                    <h1 className="text-3xl font-extrabold tracking-tight text-on-surface md:text-4xl">
+                        Cấu hình ngưỡng
+                    </h1>
+                    <p className="mt-2 max-w-2xl text-sm text-on-surface-variant">
+                        Quản lý ngưỡng theo kênh, khóa dữ liệu và đơn vị đo.
+                    </p>
+                </div>
+                <Button
+                    onClick={() => {
+                        if (tab === "thresholds") {
+                            setEditing(null);
+                            setModalOpen(true);
+                        } else {
+                            setEditingType(null);
+                            setTypeModalOpen(true);
+                        }
+                        setMutationError(null);
+                    }}
+                    className="md:self-center"
+                >
+                    <span className="material-symbols-outlined" aria-hidden="true">
+                        add
+                    </span>
+                    {tab === "thresholds" ? "Thêm ngưỡng" : "Thêm kênh"}
+                </Button>
+            </div>
+
+            {mutationError && (
+                <div
+                    className="mb-5 rounded-lg border border-error/20 bg-error-container/25 px-4 py-3 text-sm font-medium text-on-error-container"
+                    role="alert"
+                >
+                    {mutationError}
+                </div>
+            )}
+
+            <Tabs label="Cấu hình ngưỡng" className="mb-6">
+                <TabButton
+                    active={tab === "thresholds"}
+                    icon="waterfall_chart"
+                    onClick={() => setTab("thresholds")}
+                >
+                    Thresholds
+                </TabButton>
+                <TabButton
+                    active={tab === "channels"}
+                    icon="sensors"
+                    onClick={() => setTab("channels")}
+                >
+                    Channels
+                </TabButton>
+            </Tabs>
+
+            {tab === "thresholds" && (
+                <div className="space-y-4">
+                    <div className="flex flex-col gap-3 rounded-lg border border-outline-variant/30 bg-surface-container-lowest p-4 shadow-sm sm:flex-row sm:items-end">
+                        <Select
+                            label="Lọc theo kênh"
+                            value={filterType}
+                            onChange={(event) =>
+                                setFilterType(event.target.value)
+                            }
+                            containerClassName="sm:w-72"
+                        >
+                            <option value="all">Tất cả kênh</option>
+                            {channelDefinitions.map((definition) => (
+                                <option
+                                    key={definition.id}
+                                    value={definition.id}
+                                >
+                                    {definition.name}
+                                </option>
+                            ))}
+                        </Select>
+                        <p className="text-sm text-on-surface-variant sm:ml-auto">
+                            {filteredThresholds.length} ngưỡng
                         </p>
                     </div>
-
-                    {tab === "thresholds" ? (
-                        <button
-                            onClick={() => {
-                                setEditing(null);
-                                setModalOpen(true);
-                            }}
-                            className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-xl text-sm font-semibold shadow-sm hover:bg-primary/90 active:scale-[.98] transition"
-                        >
-                            <span className="material-symbols-outlined text-[18px]">
-                                add
-                            </span>
-                            Thêm ngưỡng
-                        </button>
-                    ) : (
-                        <button
-                            onClick={() => {
-                                setEditingType(null);
-                                setTypeModalOpen(true);
-                            }}
-                            className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-xl text-sm font-semibold shadow-sm hover:bg-primary/90 active:scale-[.98] transition"
-                        >
-                            <span className="material-symbols-outlined text-[18px]">
-                                add
-                            </span>
-                            Thêm kênh
-                        </button>
-                    )}
-                </div>
-            </div>
-
-            {/* Tabs */}
-            <div className="px-10">
-                <div className="flex gap-1 border-b border-outline-variant/15">
-                    <Tab
-                        active={tab === "thresholds"}
-                        icon="waterfall_chart"
-                        label="Thresholds"
-                        onClick={() => setTab("thresholds")}
-                    />
-                    <Tab
-                        active={tab === "channels"}
-                        icon="sensors"
-                        label="Channels"
-                        onClick={() => setTab("channels")}
-                    />
-                </div>
-            </div>
-
-            {/* Content */}
-            <div className="px-10 py-6">
-                {tab === "thresholds" && (
-                    <>
-                        {/* Filter */}
-                        <div className="flex items-center gap-3 mb-5">
-                            <span className="material-symbols-outlined text-[18px] text-on-surface-variant">
-                                filter_list
-                            </span>
-                            <select
-                                value={filterType}
-                                onChange={(e) => setFilterType(e.target.value)}
-                                className="px-3 py-1.5 rounded-lg border border-outline-variant/50 bg-white text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/30 cursor-pointer"
-                            >
-                                <option value="all">Tất cả kênh</option>
-                                {channelDefinitions.map((t) => (
-                                    <option key={t.id} value={t.id}>
-                                        {t.name}
-                                    </option>
-                                ))}
-                            </select>
-                            {filterType !== "all" && (
-                                <button
-                                    onClick={() => setFilterType("all")}
-                                    className="text-xs text-on-surface-variant hover:text-on-surface underline underline-offset-2"
-                                >
-                                    Xóa bộ lọc
-                                </button>
-                            )}
-                            <span className="ml-auto text-xs text-on-surface-variant">
-                                {filteredThresholds.length} ngưỡng
-                            </span>
-                        </div>
-
-                        {/* Table */}
-                        <DataTable
-                            columns={thresholdColumns}
-                            data={filteredThresholds}
-                            rowKey="id"
-                            loading={loading}
-                            emptyIcon="waterfall_chart"
-                            emptyText="Chưa có ngưỡng nào."
-                            rowClassName="group"
-                        />
-                    </>
-                )}
-
-                {tab === "channels" && (
                     <DataTable
-                        columns={channelColumns}
-                        data={channelDefinitions}
+                        columns={thresholdColumns}
+                        data={filteredThresholds}
                         rowKey="id"
-                        loading={channelsLoading}
-                        emptyIcon="sensors"
-                        emptyText="Chưa có kênh nào."
-                        rowClassName="group"
+                        loading={loading}
+                        emptyIcon="waterfall_chart"
+                        emptyTitle="Chưa có ngưỡng"
+                        emptyText="Chưa có ngưỡng nào."
                     />
-                )}
-            </div>
+                </div>
+            )}
 
-            {/* Modals */}
+            {tab === "channels" && (
+                <DataTable
+                    columns={channelColumns}
+                    data={channelDefinitions}
+                    rowKey="id"
+                    loading={channelsLoading}
+                    emptyIcon="sensors"
+                    emptyTitle="Chưa có kênh"
+                    emptyText="Chưa có kênh nào."
+                />
+            )}
+
             {modalOpen && (
                 <ThresholdModal
                     editing={editing}
                     channelDefinitions={channelDefinitions}
                     levels={LEVELS}
-                    onClose={() => {
-                        setModalOpen(false);
-                        setEditing(null);
-                    }}
-                    onSave={handleSave}
+                    onClose={closeThresholdModal}
+                    onSave={handleSaveThreshold}
                     submitting={submitting}
                 />
             )}
             {typeModalOpen && (
                 <SensorTypeModal
                     editing={editingType}
-                    onClose={() => {
-                        setTypeModalOpen(false);
-                        setEditingType(null);
-                    }}
+                    onClose={closeChannelModal}
                     onSave={handleSaveChannel}
                     submitting={typeSubmitting}
                 />
             )}
-        </main>
+            <ConfirmDialog
+                open={Boolean(deleteTarget)}
+                title={
+                    deleteTarget?.kind === "threshold"
+                        ? "Xóa ngưỡng?"
+                        : "Xóa kênh?"
+                }
+                description={`Bạn có chắc muốn xóa ${deleteTarget?.label ?? "mục này"}?`}
+                confirmLabel="Xóa"
+                isLoading={Boolean(deletingId)}
+                onClose={() => setDeleteTarget(null)}
+                onConfirm={handleConfirmDelete}
+            />
+        </section>
     );
 }

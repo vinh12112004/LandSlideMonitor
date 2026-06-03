@@ -35,7 +35,11 @@ const sensordataService = {
         const res = await api.get("/sensordata/alerts", { params });
         return res.data;
     },
-    getLatestForAll: async (provinceId) => {
+    getLatestForAll: async (provinceIdOrParams) => {
+        const provinceId =
+            typeof provinceIdOrParams === "object"
+                ? provinceIdOrParams?.provinceId
+                : provinceIdOrParams;
         const res = await api.get("/sensordata/latest-all", {
             params: { provinceId },
         });

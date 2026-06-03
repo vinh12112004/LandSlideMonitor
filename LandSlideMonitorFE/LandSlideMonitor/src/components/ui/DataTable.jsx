@@ -1,23 +1,7 @@
-/**
- * DataTable — component bảng dùng chung cho toàn bộ ứng dụng.
- *
- * Props:
- *  columns: Array<{
- *    key: string,
- *    label: string,
- *    align?: "left" | "center" | "right",   // default: "left"
- *    className?: string,                     // class cho <td>
- *    render?: (value, row) => ReactNode,     // custom cell render
- *  }>
- *  data: Array<object>                       // mỗi object là một hàng
- *  rowKey: string | (row) => string          // key duy nhất cho mỗi hàng
- *  loading?: boolean
- *  emptyIcon?: string                        // tên Material Symbol
- *  emptyText?: string
- *  onRowClick?: (row) => void
- *  rowClassName?: string | (row) => string   // class tuỳ chỉnh theo từng hàng
- *  className?: string                        // class cho wrapper ngoài
- */
+import { Fragment } from "react";
+import EmptyState from "./EmptyState";
+import LoadingState from "./LoadingState";
+import { cn } from "../../utils/cn";
 
 export default function DataTable({
     columns = [],
@@ -26,8 +10,11 @@ export default function DataTable({
     loading = false,
     emptyIcon = "table_rows",
     emptyText = "Không có dữ liệu.",
+    emptyTitle = "Không có dữ liệu",
     onRowClick,
     rowClassName,
+    expandedRowRender,
+    isRowExpanded,
     className = "",
 }) {
     const getKey = (row) =>
@@ -48,27 +35,38 @@ export default function DataTable({
         const base =
             "border-b border-outline-variant/15 last:border-b-0 transition-colors";
         const hover = onRowClick
-            ? "hover:bg-surface-container-low/50 cursor-pointer"
+            ? "cursor-pointer hover:bg-surface-container-low/55 focus-visible:bg-surface-container-low focus-visible:outline-none"
             : "hover:bg-surface-container-lowest/60";
         const custom =
             typeof rowClassName === "function"
                 ? rowClassName(row)
                 : (rowClassName ?? "");
-        return `${base} ${hover} ${custom}`;
+        return cn(base, hover, custom);
+    };
+
+    const handleRowKeyDown = (event, row) => {
+        if (!onRowClick) return;
+        if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            onRowClick(row);
+        }
     };
 
     return (
         <div
-            className={`bg-surface-container-lowest rounded-3xl overflow-hidden shadow-sm border border-outline-variant/10 ${className}`}
+            className={cn(
+                "overflow-hidden rounded-lg border border-outline-variant/25 bg-surface-container-lowest shadow-sm",
+                className,
+            )}
         >
             <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
-                    {/* ── Header ── */}
                     <thead>
-                        <tr className="border-b border-outline-variant/20 bg-surface-container-low/50">
+                        <tr className="border-b border-outline-variant/25 bg-surface-container-low/65">
                             {columns.map((col) => (
                                 <th
                                     key={col.key}
+                                    scope="col"
                                     className={`px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant whitespace-nowrap ${getAlign(col)} ${col.headerClassName ?? ""}`}
                                 >
                                     {col.label}
@@ -76,59 +74,75 @@ export default function DataTable({
                             ))}
                         </tr>
                     </thead>
-
-                    {/* ── Body ── */}
                     <tbody>
                         {loading ? (
                             <tr>
                                 <td
                                     colSpan={columns.length}
-                                    className="px-6 py-16 text-center"
+                                    className="px-6 py-8 text-center"
                                 >
-                                    <div className="flex flex-col items-center gap-3 text-on-surface-variant">
-                                        <span className="material-symbols-outlined text-4xl text-primary animate-spin">
-                                            progress_activity
-                                        </span>
-                                        <p className="text-sm">Đang tải...</p>
-                                    </div>
+                                    <LoadingState
+                                        message="Đang tải..."
+                                        className="min-h-40"
+                                    />
                                 </td>
                             </tr>
                         ) : data.length === 0 ? (
                             <tr>
                                 <td
                                     colSpan={columns.length}
-                                    className="px-6 py-16 text-center"
+                                    className="px-6 py-8 text-center"
                                 >
-                                    <div className="flex flex-col items-center gap-3 text-on-surface-variant">
-                                        <span className="material-symbols-outlined text-5xl opacity-25">
-                                            {emptyIcon}
-                                        </span>
-                                        <p className="text-sm">{emptyText}</p>
-                                    </div>
+                                    <EmptyState
+                                        icon={emptyIcon}
+                                        title={emptyTitle}
+                                        description={emptyText}
+                                        className="min-h-40 border-0 bg-transparent"
+                                    />
                                 </td>
                             </tr>
                         ) : (
-                            data.map((row) => (
-                                <tr
-                                    key={getKey(row)}
-                                    className={getRowClass(row)}
-                                    onClick={
-                                        onRowClick
-                                            ? () => onRowClick(row)
-                                            : undefined
-                                    }
-                                >
-                                    {columns.map((col) => (
-                                        <td
-                                            key={col.key}
-                                            className={`px-6 py-4 text-sm ${getAlign(col)} ${col.className ?? ""}`}
-                                        >
-                                            {col.render
-                                                ? col.render(row[col.key], row)
-                                                : (row[col.key] ?? "—")}
-                                        </td>
-                                    ))}
-                                </tr>
+                            data.map((row, rowIndex) => (
+                                <Fragment key={getKey(row)}>
+                                    <tr
+                                        className={getRowClass(row)}
+                                        onClick={
+                                            onRowClick
+                                                ? () => onRowClick(row)
+                                                : undefined
+                                        }
+                                        onKeyDown={(event) =>
+                                            handleRowKeyDown(event, row)
+                                        }
+                                        tabIndex={onRowClick ? 0 : undefined}
+                                    >
+                                        {columns.map((col) => (
+                                            <td
+                                                key={col.key}
+                                                className={`px-6 py-4 text-sm ${getAlign(col)} ${col.className ?? ""}`}
+                                            >
+                                                {col.render
+                                                    ? col.render(
+                                                          row[col.key],
+                                                          row,
+                                                          rowIndex,
+                                                      )
+                                                    : (row[col.key] ?? "—")}
+                                            </td>
+                                        ))}
+                                    </tr>
+                                    {expandedRowRender &&
+                                        isRowExpanded?.(row) && (
+                                            <tr>
+                                                <td
+                                                    colSpan={columns.length}
+                                                    className="border-b border-outline-variant/15 p-0"
+                                                >
+                                                    {expandedRowRender(row)}
+                                                </td>
+                                            </tr>
+                                        )}
+                                </Fragment>
                             ))
                         )}
                     </tbody>

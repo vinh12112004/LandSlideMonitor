@@ -1,7 +1,17 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import JsonViewer from "./JsonViewer";
 import { DATA_STATUS_CONFIG } from "../../constants/sensorConfig";
 import Pagination from "../common/Pagination";
+import EmptyState from "../ui/EmptyState";
+import LoadingState from "../ui/LoadingState";
+
+const FILTERS = [
+    { value: "all", label: "Tất cả" },
+    { value: "0", label: "Bình thường" },
+    { value: "1", label: "Cảnh báo" },
+    { value: "2", label: "Nguy hiểm" },
+];
+
 const HistoryList = ({
     history,
     formatTime,
@@ -14,199 +24,94 @@ const HistoryList = ({
 }) => {
     const [historyFilter, setHistoryFilter] = useState("all");
 
-    const filteredHistory =
-        historyFilter === "all"
-            ? history
-            : history.filter((h) => h.status === parseInt(historyFilter));
+    const filteredHistory = useMemo(() => {
+        if (historyFilter === "all") return history;
+        return history.filter(
+            (record) => record.status === parseInt(historyFilter, 10),
+        );
+    }, [history, historyFilter]);
 
     return (
-        <div>
-            <div
-                style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 10,
-                    marginBottom: 16,
-                }}
-            >
-                <span
-                    style={{
-                        fontSize: 13,
-                        color: "var(--color-text-secondary)",
-                    }}
-                >
+        <div className="space-y-4">
+            <div className="flex flex-col gap-3 rounded-lg border border-outline-variant/30 bg-surface-container-lowest p-4 shadow-sm sm:flex-row sm:items-center">
+                <span className="text-sm font-semibold text-on-surface-variant">
                     Lọc:
                 </span>
-                {[
-                    { value: "all", label: "Tất cả" },
-                    { value: "0", label: "Bình thường" },
-                    { value: "1", label: "Cảnh báo" },
-                    { value: "2", label: "Nguy hiểm" },
-                ].map((opt) => (
-                    <button
-                        key={opt.value}
-                        onClick={() => setHistoryFilter(opt.value)}
-                        style={{
-                            padding: "5px 14px",
-                            borderRadius: 20,
-                            fontSize: 13,
-                            cursor: "pointer",
-                            background:
-                                historyFilter === opt.value
-                                    ? "#185FA5"
-                                    : "none",
-                            color:
-                                historyFilter === opt.value
-                                    ? "#fff"
-                                    : "var(--color-text-secondary)",
-                            border:
-                                historyFilter === opt.value
-                                    ? "none"
-                                    : "0.5px solid var(--color-border-tertiary)",
-                            fontWeight: historyFilter === opt.value ? 500 : 400,
-                        }}
-                    >
-                        {opt.label}
-                    </button>
-                ))}
-                <span
-                    style={{
-                        marginLeft: "auto",
-                        fontSize: 13,
-                        color: "var(--color-text-secondary)",
-                    }}
-                >
+                <div className="flex flex-wrap gap-2">
+                    {FILTERS.map((option) => (
+                        <button
+                            key={option.value}
+                            type="button"
+                            onClick={() => setHistoryFilter(option.value)}
+                            className={`rounded-full px-3 py-1.5 text-xs font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 ${
+                                historyFilter === option.value
+                                    ? "bg-primary text-on-primary"
+                                    : "border border-outline-variant/50 text-on-surface-variant hover:bg-surface-container"
+                            }`}
+                        >
+                            {option.label}
+                        </button>
+                    ))}
+                </div>
+                <span className="text-sm text-on-surface-variant sm:ml-auto">
                     {filteredHistory.length} bản ghi
                 </span>
             </div>
 
-            <div
-                style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: 10,
-                }}
-            >
-                {loading && (
-                    <div
-                        style={{
-                            textAlign: "center",
-                            padding: "28px 0",
-                            color: "var(--color-text-secondary)",
-                        }}
-                    >
-                        Đang tải lịch sử...
-                    </div>
-                )}
-
-                {!loading &&
-                    filteredHistory.map((record) => {
-                        const dCfg = DATA_STATUS_CONFIG[record.status];
+            {loading ? (
+                <LoadingState message="Đang tải lịch sử..." />
+            ) : filteredHistory.length === 0 ? (
+                <EmptyState
+                    icon="search_off"
+                    title="Không có bản ghi"
+                    description="Không có bản ghi nào phù hợp với bộ lọc hiện tại."
+                />
+            ) : (
+                <div className="space-y-3">
+                    {filteredHistory.map((record) => {
+                        const status =
+                            DATA_STATUS_CONFIG[record.status] ||
+                            DATA_STATUS_CONFIG[0];
                         return (
-                            <div
+                            <article
                                 key={record.id}
-                                style={{
-                                    background:
-                                        "var(--color-background-primary)",
-                                    border: "0.5px solid var(--color-border-tertiary)",
-                                    borderRadius: 12,
-                                    padding: "16px 20px",
-                                    borderLeft: `3px solid ${dCfg.color}`,
-                                }}
+                                className="rounded-lg border border-l-4 border-outline-variant/30 bg-surface-container-lowest p-4 shadow-sm"
+                                style={{ borderLeftColor: status.color }}
                             >
-                                <div
-                                    style={{
-                                        display: "flex",
-                                        alignItems: "center",
-                                        gap: 12,
-                                    }}
-                                >
+                                <div className="flex items-start gap-3">
                                     <span
-                                        className="material-symbols-outlined"
-                                        style={{
-                                            fontSize: 20,
-                                            color: dCfg.color,
-                                        }}
+                                        className="material-symbols-outlined mt-0.5 text-[22px]"
+                                        style={{ color: status.color }}
+                                        aria-hidden="true"
                                     >
-                                        {dCfg.icon}
+                                        {status.icon}
                                     </span>
-                                    <div style={{ flex: 1 }}>
-                                        <div
-                                            style={{
-                                                display: "flex",
-                                                alignItems: "center",
-                                                gap: 10,
-                                            }}
-                                        >
-                                            <span
-                                                style={{
-                                                    fontWeight: 500,
-                                                    fontSize: 14,
-                                                    color: "var(--color-text-primary)",
-                                                }}
-                                            >
+                                    <div className="min-w-0 flex-1">
+                                        <div className="flex flex-wrap items-center gap-2">
+                                            <span className="text-sm font-semibold text-on-surface">
                                                 {formatTime(record.timestamp)}
                                             </span>
                                             <span
+                                                className="rounded-full px-2.5 py-1 text-xs font-semibold"
                                                 style={{
-                                                    fontSize: 12,
-                                                    padding: "2px 8px",
-                                                    borderRadius: 12,
-                                                    background: dCfg.bg,
-                                                    color: dCfg.text,
-                                                    fontWeight: 500,
+                                                    background: status.bg,
+                                                    color: status.text,
                                                 }}
                                             >
-                                                {dCfg.label}
+                                                {status.label}
                                             </span>
-                                            <span
-                                                style={{
-                                                    fontSize: 12,
-                                                    color: "var(--color-text-secondary)",
-                                                }}
-                                            >
+                                            <span className="text-xs text-on-surface-variant">
                                                 ID: {record.id}
                                             </span>
                                         </div>
                                         <JsonViewer data={record.jsonData} />
                                     </div>
                                 </div>
-                            </div>
+                            </article>
                         );
                     })}
-
-                {!loading && filteredHistory.length === 0 && (
-                    <div
-                        style={{
-                            textAlign: "center",
-                            padding: "48px 0",
-                            background: "var(--color-background-primary)",
-                            borderRadius: 12,
-                            border: "0.5px solid var(--color-border-tertiary)",
-                        }}
-                    >
-                        <span
-                            className="material-symbols-outlined"
-                            style={{
-                                fontSize: 40,
-                                color: "var(--color-text-secondary)",
-                                display: "block",
-                                marginBottom: 10,
-                            }}
-                        >
-                            search_off
-                        </span>
-                        <p
-                            style={{
-                                color: "var(--color-text-secondary)",
-                                margin: 0,
-                            }}
-                        >
-                            Không có bản ghi nào
-                        </p>
-                    </div>
-                )}
-            </div>
+                </div>
+            )}
 
             <Pagination
                 currentPage={page}

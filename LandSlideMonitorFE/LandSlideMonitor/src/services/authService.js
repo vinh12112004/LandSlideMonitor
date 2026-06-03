@@ -13,11 +13,9 @@ export const login = async (username, password) => {
 export const logout = () => {
     const refreshToken = localStorage.getItem("refreshToken");
     if (refreshToken) {
-        try {
-            api.post("/auth/logout", { refreshToken });
-        } catch (error) {
-            console.error("Logout failed", error);
-        }
+        void api
+            .post("/auth/logout", { refreshToken })
+            .catch((error) => console.error("Logout failed", error));
     }
     localStorage.removeItem("accessToken");
     localStorage.removeItem("refreshToken");
@@ -28,6 +26,12 @@ export const getAccessToken = () => localStorage.getItem("accessToken");
 
 export const getCurrentUser = () => {
     const userStr = localStorage.getItem("user");
-    if (userStr) return JSON.parse(userStr);
+    if (userStr) {
+        try {
+            return JSON.parse(userStr);
+        } catch {
+            localStorage.removeItem("user");
+        }
+    }
     return null;
 };

@@ -1,10 +1,15 @@
 import { useState } from "react";
 import { SENSOR_STATUS_CONFIG } from "../../constants/sensorConfig";
+import Button from "../ui/Button";
+import Input from "../ui/Input";
+import Modal from "../ui/Modal";
+import Select from "../ui/Select";
 
 const DEFAULT_SENSOR_FORM = {
     name: "",
     channelDefinitionIds: [],
     sensorCode: "",
+    status: 1,
 };
 
 const SensorModal = ({
@@ -52,258 +57,97 @@ const SensorModal = ({
     };
 
     return (
-        <div
-            style={{
-                position: "fixed",
-                inset: 0,
-                background: "rgba(0,0,0,0.45)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                zIndex: 1000,
-            }}
-            onClick={onClose}
-        >
-            <div
-                style={{
-                    background: "var(--color-background-primary)",
-                    borderRadius: 16,
-                    border: "0.5px solid var(--color-border-tertiary)",
-                    padding: "28px 32px",
-                    width: 480,
-                    boxSizing: "border-box",
-                }}
-                onClick={(e) => e.stopPropagation()}
-            >
-                <div
-                    style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                        marginBottom: 24,
-                    }}
-                >
-                    <h2
-                        style={{
-                            margin: 0,
-                            fontSize: 18,
-                            fontWeight: 500,
-                            color: "var(--color-text-primary)",
-                        }}
-                    >
-                        {isEdit ? "Chỉnh sửa sensor" : "Thêm sensor mới"}
-                    </h2>
-                    <button
+        <Modal
+            title={isEdit ? "Chỉnh sửa sensor" : "Thêm sensor mới"}
+            description="Quản lý thông tin sensor và các kênh dữ liệu được gắn với thiết bị."
+            onClose={onClose}
+            size="lg"
+            footer={
+                <>
+                    <Button
+                        variant="outline"
                         onClick={onClose}
-                        style={{
-                            background: "none",
-                            border: "none",
-                            cursor: "pointer",
-                            color: "var(--color-text-secondary)",
-                            padding: 4,
-                        }}
-                    >
-                        <span
-                            className="material-symbols-outlined"
-                            style={{ fontSize: 20 }}
-                        >
-                            close
-                        </span>
-                    </button>
-                </div>
-
-                <div
-                    style={{
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: 16,
-                    }}
-                >
-                    <div>
-                        <label
-                            style={{
-                                fontSize: 13,
-                                color: "var(--color-text-secondary)",
-                                display: "block",
-                                marginBottom: 6,
-                            }}
-                        >
-                            Tên sensor
-                        </label>
-                        <input
-                            value={form.name}
-                            onChange={(e) => set("name", e.target.value)}
-                            placeholder="VD: Cảm biến gia tốc chính"
-                            style={{ width: "100%", boxSizing: "border-box" }}
-                            className="w-full border-2 border-outline-variant/80 rounded-xl px-4 py-2.5 text-sm bg-white"
-                            disabled={submitting}
-                        />
-                    </div>
-
-                    {!isEdit && (
-                        <div>
-                            <label
-                                style={{
-                                    fontSize: 13,
-                                    color: "var(--color-text-secondary)",
-                                    display: "block",
-                                    marginBottom: 6,
-                                }}
-                            >
-                                Channel
-                            </label>
-                            <div
-                                style={{
-                                    border: "2px solid var(--color-border-tertiary)",
-                                    borderRadius: 12,
-                                    padding: 10,
-                                    display: "flex",
-                                    flexDirection: "column",
-                                    gap: 8,
-                                    maxHeight: 160,
-                                    overflow: "auto",
-                                    background: "#fff",
-                                }}
-                            >
-                                {sensorTypes.length === 0 && (
-                                    <span
-                                        style={{
-                                            fontSize: 13,
-                                            color: "var(--color-text-secondary)",
-                                        }}
-                                    >
-                                        Chưa có channel nào.
-                                    </span>
-                                )}
-                                {sensorTypes.map((t) => (
-                                    <label
-                                        key={t.id}
-                                        style={{
-                                            display: "flex",
-                                            alignItems: "center",
-                                            gap: 8,
-                                            fontSize: 13,
-                                            color: "var(--color-text-primary)",
-                                        }}
-                                    >
-                                        <input
-                                            type="checkbox"
-                                            checked={form.channelDefinitionIds.includes(
-                                                t.id,
-                                            )}
-                                            onChange={() => toggleChannel(t.id)}
-                                            disabled={submitting}
-                                        />
-                                        <span>
-                                            {t.name} ({t.dataKey})
-                                        </span>
-                                    </label>
-                                ))}
-                            </div>
-                        </div>
-                    )}
-
-                    <div
-                        style={{
-                            display: "grid",
-                            gridTemplateColumns: "1fr 1fr",
-                            gap: 12,
-                        }}
-                    >
-                        <div>
-                            <label
-                                style={{
-                                    fontSize: 13,
-                                    color: "var(--color-text-secondary)",
-                                    display: "block",
-                                    marginBottom: 6,
-                                }}
-                            >
-                                Trạng thái
-                            </label>
-                            <select
-                                value={form.status}
-                                onChange={(e) =>
-                                    set("status", parseInt(e.target.value))
-                                }
-                                className="w-full border-2 border-outline-variant/80 rounded-xl px-4 py-2.5 text-sm bg-white"
-                                style={{ width: "100%" }}
-                                disabled={!isEdit || submitting}
-                            >
-                                {Object.entries(SENSOR_STATUS_CONFIG).map(
-                                    ([key, { label }]) => (
-                                        <option key={key} value={key}>
-                                            {label}
-                                        </option>
-                                    ),
-                                )}
-                            </select>
-                        </div>
-                        <div>
-                            <label
-                                style={{
-                                    fontSize: 13,
-                                    color: "var(--color-text-secondary)",
-                                    display: "block",
-                                    marginBottom: 6,
-                                }}
-                            >
-                                Mã sensor
-                            </label>
-                            <input
-                                value={form.sensorCode}
-                                onChange={(e) =>
-                                    set("sensorCode", e.target.value)
-                                }
-                                placeholder="VD: ACC-01"
-                                className="w-full border-2 border-outline-variant/80 rounded-xl px-4 py-2.5 text-sm bg-white"
-                                style={{
-                                    width: "100%",
-                                    boxSizing: "border-box",
-                                }}
-                                disabled={isEdit || submitting}
-                            />
-                        </div>
-                    </div>
-                </div>
-
-                <div
-                    style={{
-                        display: "flex",
-                        justifyContent: "flex-end",
-                        gap: 10,
-                        marginTop: 28,
-                    }}
-                >
-                    <button
-                        onClick={onClose}
-                        style={{ padding: "8px 20px" }}
                         disabled={submitting}
                     >
                         Hủy
-                    </button>
-                    <button
-                        onClick={handleSave}
-                        style={{
-                            padding: "8px 20px",
-                            background: "#185FA5",
-                            color: "#fff",
-                            border: "none",
-                            borderRadius: 8,
-                            cursor: "pointer",
-                            fontWeight: 500,
-                        }}
-                        disabled={submitting}
+                    </Button>
+                    <Button onClick={handleSave} isLoading={submitting}>
+                        {isEdit ? "Lưu thay đổi" : "Thêm sensor"}
+                    </Button>
+                </>
+            }
+        >
+            <div className="space-y-4">
+                <Input
+                    label="Tên sensor"
+                    value={form.name}
+                    onChange={(e) => set("name", e.target.value)}
+                    placeholder="VD: Cảm biến gia tốc chính"
+                    disabled={submitting}
+                    autoFocus
+                />
+
+                {!isEdit && (
+                    <fieldset>
+                        <legend className="mb-2 text-xs font-semibold text-on-surface-variant">
+                            Channel
+                        </legend>
+                        <div className="max-h-44 space-y-2 overflow-auto rounded-lg border border-outline-variant/50 bg-surface-container-lowest p-3">
+                            {sensorTypes.length === 0 && (
+                                <p className="text-sm text-on-surface-variant">
+                                    Chưa có channel nào.
+                                </p>
+                            )}
+                            {sensorTypes.map((t) => (
+                                <label
+                                    key={t.id}
+                                    className="flex cursor-pointer items-center gap-2 rounded-md p-2 text-sm text-on-surface transition hover:bg-surface-container-low"
+                                >
+                                    <input
+                                        type="checkbox"
+                                        checked={form.channelDefinitionIds.includes(
+                                            t.id,
+                                        )}
+                                        onChange={() => toggleChannel(t.id)}
+                                        disabled={submitting}
+                                        className="h-4 w-4 rounded border-outline-variant text-primary focus:ring-primary/25"
+                                    />
+                                    <span>
+                                        {t.name} ({t.dataKey})
+                                    </span>
+                                </label>
+                            ))}
+                        </div>
+                    </fieldset>
+                )}
+
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <Select
+                        label="Trạng thái"
+                        value={form.status}
+                        onChange={(e) =>
+                            set("status", parseInt(e.target.value, 10))
+                        }
+                        disabled={!isEdit || submitting}
                     >
-                        {submitting
-                            ? "Đang lưu..."
-                            : isEdit
-                              ? "Lưu thay đổi"
-                              : "Thêm sensor"}
-                    </button>
+                        {Object.entries(SENSOR_STATUS_CONFIG).map(
+                            ([key, { label }]) => (
+                                <option key={key} value={key}>
+                                    {label}
+                                </option>
+                            ),
+                        )}
+                    </Select>
+                    <Input
+                        label="Mã sensor"
+                        value={form.sensorCode}
+                        onChange={(e) => set("sensorCode", e.target.value)}
+                        placeholder="VD: ACC-01"
+                        disabled={isEdit || submitting}
+                    />
                 </div>
             </div>
-        </div>
+        </Modal>
     );
 };
 

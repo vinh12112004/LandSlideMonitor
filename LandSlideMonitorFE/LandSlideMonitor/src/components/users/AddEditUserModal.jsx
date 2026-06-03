@@ -1,4 +1,8 @@
 import { useState } from "react";
+import Button from "../ui/Button";
+import Input from "../ui/Input";
+import Modal from "../ui/Modal";
+import Select from "../ui/Select";
 
 const getInitialFormData = (user) => {
     if (user) {
@@ -52,109 +56,86 @@ export default function AddEditUserModal({
     const isManager = formData.role === "Manager";
 
     return (
-        <div
-            className="fixed inset-0 bg-black/30 z-50 flex items-center justify-center"
-            onClick={onClose}
+        <Modal
+            title={user ? "Sửa người dùng" : "Tạo người dùng mới"}
+            description="Quản lý vai trò và phạm vi tỉnh/thành phố được phân quyền."
+            onClose={onClose}
+            size="lg"
+            footer={
+                <>
+                    <Button
+                        variant="outline"
+                        onClick={onClose}
+                        disabled={submitting}
+                    >
+                        Hủy
+                    </Button>
+                    <Button
+                        type="submit"
+                        form="user-form"
+                        isLoading={submitting}
+                    >
+                        Lưu
+                    </Button>
+                </>
+            }
         >
-            <div
-                className="bg-surface-container-high rounded-2xl shadow-xl w-full max-w-lg p-8"
-                onClick={(e) => e.stopPropagation()}
-            >
-                <h3 className="text-2xl font-bold text-on-surface mb-6">
-                    {user ? "Sửa người dùng" : "Tạo người dùng mới"}
-                </h3>
-                <form onSubmit={handleSubmit} className="space-y-6">
-                    <div>
-                        <label className="block text-sm font-medium text-on-surface-variant mb-1">
-                            Tên đăng nhập
-                        </label>
-                        <input
-                            type="text"
-                            name="username"
-                            value={formData.username}
-                            onChange={handleChange}
-                            required
-                            className="w-full p-3 bg-surface-container rounded-lg border-none focus:ring-2 focus:ring-primary"
-                        />
-                    </div>
-                    <div>
-                        <label className="block text-sm font-medium text-on-surface-variant mb-1">
-                            Mật khẩu
-                        </label>
-                        <input
-                            type="password"
-                            name="password"
-                            value={formData.password}
-                            onChange={handleChange}
-                            placeholder={
-                                user
-                                    ? "Để trống nếu không muốn đổi mật khẩu"
-                                    : ""
-                            }
-                            className="w-full p-3 bg-surface-container rounded-lg border-none focus:ring-2 focus:ring-primary"
-                        />
-                    </div>
-                    <div>
-                        <label className="block text-sm font-medium text-on-surface-variant mb-1">
-                            Vai trò
-                        </label>
-                        <select
-                            name="role"
-                            value={formData.role}
-                            onChange={handleChange}
-                            className="w-full p-3 bg-surface-container rounded-lg border-none focus:ring-2 focus:ring-primary"
-                        >
-                            <option value="Manager">Manager</option>
-                            <option value="Admin">Admin</option>
-                        </select>
-                    </div>
-                    {isManager && (
-                        <div>
-                            <label className="block text-sm font-medium text-on-surface-variant mb-2">
-                                Các tỉnh/thành phố quản lý
-                            </label>
-                            <div className="grid grid-cols-3 gap-2 max-h-48 overflow-y-auto p-2 bg-surface-container rounded-lg">
-                                {provinces.map((p) => (
-                                    <label
-                                        key={p.id}
-                                        className="flex items-center gap-2 p-2 rounded-md hover:bg-surface-container-highest cursor-pointer"
-                                    >
-                                        <input
-                                            type="checkbox"
-                                            checked={formData.provinceIds.includes(
-                                                p.id,
-                                            )}
-                                            onChange={() =>
-                                                handleProvinceChange(p.id)
-                                            }
-                                            className="h-4 w-4 rounded text-primary focus:ring-primary"
-                                        />
-                                        <span className="text-sm text-on-surface-variant">
-                                            {p.name}
-                                        </span>
-                                    </label>
-                                ))}
-                            </div>
+            <form id="user-form" onSubmit={handleSubmit} className="space-y-5">
+                <Input
+                    label="Tên đăng nhập"
+                    type="text"
+                    name="username"
+                    value={formData.username}
+                    onChange={handleChange}
+                    required
+                    autoFocus
+                />
+                <Input
+                    label="Mật khẩu"
+                    type="password"
+                    name="password"
+                    value={formData.password}
+                    onChange={handleChange}
+                    placeholder={user ? "Để trống nếu không muốn đổi mật khẩu" : ""}
+                    autoComplete={user ? "new-password" : "current-password"}
+                />
+                <Select
+                    label="Vai trò"
+                    name="role"
+                    value={formData.role}
+                    onChange={handleChange}
+                >
+                    <option value="Manager">Manager</option>
+                    <option value="Admin">Admin</option>
+                </Select>
+                {isManager && (
+                    <fieldset>
+                        <legend className="mb-2 text-xs font-semibold text-on-surface-variant">
+                            Các tỉnh/thành phố quản lý
+                        </legend>
+                        <div className="grid max-h-56 grid-cols-1 gap-2 overflow-y-auto rounded-lg border border-outline-variant/40 bg-surface-container-low p-2 sm:grid-cols-2 md:grid-cols-3">
+                            {provinces.map((p) => (
+                                <label
+                                    key={p.id}
+                                    className="flex cursor-pointer items-center gap-2 rounded-md p-2 text-sm text-on-surface-variant transition hover:bg-surface-container-high"
+                                >
+                                    <input
+                                        type="checkbox"
+                                        checked={formData.provinceIds.includes(
+                                            p.id,
+                                        )}
+                                        onChange={() =>
+                                            handleProvinceChange(p.id)
+                                        }
+                                        className="h-4 w-4 rounded border-outline-variant text-primary focus:ring-primary/25"
+                                    />
+                                    <span>{p.name}</span>
+                                </label>
+                            ))}
                         </div>
-                    )}
-                    <div className="flex justify-end gap-4 pt-4">
-                        <button
-                            type="button"
-                            onClick={onClose}
-                            className="px-6 py-2.5 rounded-full text-sm font-bold text-primary hover:bg-primary/10 transition-colors"
-                        >
-                            Hủy
-                        </button>
-                        <button
-                            type="submit"
-                            disabled={submitting}
-                            className="px-6 py-2.5 bg-primary text-on-primary rounded-full text-sm font-bold hover:bg-primary/90 transition-colors disabled:opacity-50"
-                        >
-                            {submitting ? "Đang lưu..." : "Lưu"}
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
+                    </fieldset>
+                )}
+            </form>
+        </Modal>
     );
 }

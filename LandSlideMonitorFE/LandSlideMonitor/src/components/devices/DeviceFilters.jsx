@@ -1,5 +1,3 @@
-import React from "react";
-
 const STATUS_OPTIONS = [
     { value: "all", label: "Tất cả trạng thái" },
     { value: "1", label: "Online" },
@@ -18,7 +16,7 @@ export default function DeviceFilters({
 }) {
     const isAdmin = user?.role === "Admin";
     return (
-        <div className="mb-6 p-4 bg-surface-container-low rounded-2xl">
+        <div className="rounded-lg border border-outline-variant/30 bg-surface-container-lowest p-4 shadow-sm">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {/* Search Input */}
                 <div>
@@ -61,9 +59,11 @@ export default function DeviceFilters({
                         disabled={!isAdmin && provinces.length <= 1}
                         className="w-full p-2.5 bg-surface-container rounded-lg border-none focus:ring-2 focus:ring-primary text-sm disabled:opacity-70 disabled:cursor-not-allowed"
                     >
-                        {isAdmin && (
-                            <option value="all">Tất cả tỉnh thành</option>
-                        )}
+                        <option value="all">
+                            {isAdmin
+                                ? "Tất cả tỉnh thành"
+                                : "Tất cả tỉnh được phân quyền"}
+                        </option>
                         {provinces.map((p) => (
                             <option key={p.id} value={p.id}>
                                 {p.name}

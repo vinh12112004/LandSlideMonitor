@@ -7,23 +7,20 @@ const STATUS_CONFIG = {
     0: {
         label: "Bình thường",
         icon: "check_circle",
-        className:
-            "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400",
+        className: "bg-emerald-50 text-emerald-700 ring-emerald-200",
         dotClass: "bg-emerald-500",
     },
     1: {
         label: "Cảnh báo",
         icon: "warning",
-        className:
-            "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400",
+        className: "bg-amber-50 text-amber-700 ring-amber-200",
         dotClass: "bg-amber-500",
         pulse: true,
     },
     2: {
         label: "Báo động",
         icon: "crisis_alert",
-        className:
-            "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
+        className: "bg-red-50 text-red-700 ring-red-200",
         dotClass: "bg-red-500",
         pulse: true,
     },
@@ -34,7 +31,7 @@ export default function DataStatusBadge({ status, showIcon = true }) {
 
     return (
         <span
-            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${cfg.className}`}
+            className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ${cfg.className}`}
         >
             {showIcon && (
                 <span

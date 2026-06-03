@@ -7,7 +7,7 @@
 [Oo]bj/
 appsettings.Development.json
 secrets.json
-
+*.dll
 
 # Visual Studio
 .vs/

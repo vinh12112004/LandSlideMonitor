@@ -1,49 +1,35 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { SENSOR_LABELS } from "../../constants/sensorConfig";
+import Button from "../ui/Button";
+
 const JsonViewer = ({ data }) => {
     const [expanded, setExpanded] = useState(false);
-    let parsed;
-    try {
-        parsed = JSON.parse(data);
-    } catch {
-        parsed = data;
-    }
+    const parsed = useMemo(() => {
+        try {
+            return JSON.parse(data);
+        } catch {
+            return data;
+        }
+    }, [data]);
 
     return (
-        <div style={{ marginTop: 8 }}>
-            <button
-                onClick={() => setExpanded((e) => !e)}
-                style={{
-                    background: "var(--color-background-secondary)",
-                    border: "0.5px solid var(--color-border-tertiary)",
-                    borderRadius: 6,
-                    padding: "4px 10px",
-                    fontSize: 12,
-                    cursor: "pointer",
-                    color: "var(--color-text-secondary)",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 4,
-                }}
+        <div className="mt-3">
+            <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setExpanded((value) => !value)}
+                aria-expanded={expanded}
             >
                 <span
-                    className="material-symbols-outlined"
-                    style={{ fontSize: 14 }}
+                    className="material-symbols-outlined text-[16px]"
+                    aria-hidden="true"
                 >
                     {expanded ? "expand_less" : "data_object"}
                 </span>
-                {expanded ? "Ẩn " : "Xem chi tiết dữ liệu"}
-            </button>
+                {expanded ? "Ẩn" : "Xem chi tiết dữ liệu"}
+            </Button>
             {expanded && parsed && typeof parsed === "object" && (
-                <div
-                    style={{
-                        marginTop: 8,
-                        display: "grid",
-                        gridTemplateColumns:
-                            "repeat(auto-fit, minmax(150px, 1fr))",
-                        gap: 8,
-                    }}
-                >
+                <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
                     {Object.entries(parsed).map(([key, value]) => {
                         const meta = SENSOR_LABELS[key];
                         const displayValue =
@@ -56,62 +42,25 @@ const JsonViewer = ({ data }) => {
                         return (
                             <div
                                 key={key}
-                                style={{
-                                    background:
-                                        "var(--color-background-secondary)",
-                                    border: "0.5px solid var(--color-border-tertiary)",
-                                    borderRadius: 10,
-                                    padding: "8px 10px",
-                                }}
+                                className="rounded-lg border border-outline-variant/25 bg-surface-container-low px-3 py-2"
                             >
-                                <div
-                                    style={{
-                                        display: "flex",
-                                        alignItems: "center",
-                                        gap: 6,
-                                        marginBottom: 4,
-                                    }}
-                                >
+                                <div className="mb-1 flex items-center gap-1.5">
                                     {meta?.icon && (
                                         <span
-                                            className="material-symbols-outlined"
-                                            style={{
-                                                fontSize: 14,
-                                                color: "var(--color-primary)",
-                                            }}
+                                            className="material-symbols-outlined text-[14px] text-primary"
+                                            aria-hidden="true"
                                         >
                                             {meta.icon}
                                         </span>
                                     )}
-                                    <span
-                                        style={{
-                                            fontSize: 10,
-                                            textTransform: "uppercase",
-                                            letterSpacing: 1,
-                                            color: "var(--color-text-secondary)",
-                                            fontWeight: 500,
-                                        }}
-                                    >
+                                    <span className="truncate text-[10px] font-semibold uppercase tracking-wider text-on-surface-variant">
                                         {meta?.label ?? key}
                                     </span>
                                 </div>
-                                <div
-                                    style={{
-                                        fontSize: 13,
-                                        fontWeight: 700,
-                                        color: "var(--color-text-primary)",
-                                    }}
-                                >
+                                <div className="text-sm font-bold text-on-surface">
                                     {displayValue}
                                     {meta?.unit ? (
-                                        <span
-                                            style={{
-                                                fontSize: 11,
-                                                fontWeight: 400,
-                                                color: "var(--color-text-secondary)",
-                                                marginLeft: 4,
-                                            }}
-                                        >
+                                        <span className="ml-1 text-xs font-normal text-on-surface-variant">
                                             {meta.unit}
                                         </span>
                                     ) : null}

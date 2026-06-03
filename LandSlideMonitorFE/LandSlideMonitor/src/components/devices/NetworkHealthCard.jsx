@@ -1,39 +1,45 @@
 export default function NetworkHealthCard({ devices }) {
     const total = devices.length;
-    const online = devices.filter((d) => d.status === 1).length; // 1 for Online
+    const online = devices.filter((device) => device.status === 1).length;
+    const ratio = total > 0 ? Math.round((online / total) * 100) : 0;
 
     return (
-        <div className="col-span-12 lg:col-span-4 bg-surface-container-low rounded-3xl p-8 relative overflow-hidden">
-            <div className="relative z-10">
-                <p className="text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-6">
-                    Tình trạng mạng lưới
-                </p>
-                <div className="flex items-baseline gap-2">
-                    <span className="text-5xl font-extrabold font-headline text-primary">
-                        {online}
-                    </span>
-                    <span className="text-on-surface-variant font-medium">
-                        / {total} đang hoạt động
-                    </span>
+        <section className="overflow-hidden rounded-lg border border-outline-variant/30 bg-surface-container-lowest p-6 shadow-sm">
+            <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+                <div>
+                    <p className="mb-2 text-xs font-bold uppercase tracking-widest text-on-surface-variant">
+                        Tình trạng mạng lưới
+                    </p>
+                    <div className="flex items-baseline gap-2">
+                        <span className="font-headline text-4xl font-extrabold text-primary">
+                            {online}
+                        </span>
+                        <span className="font-medium text-on-surface-variant">
+                            / {total} đang hoạt động
+                        </span>
+                    </div>
                 </div>
-                {/* Progress bar visual */}
-                <div className="mt-8 flex gap-2 w-full">
-                    {devices.map((d, i) => (
+                <div className="flex items-center gap-3 text-sm text-on-surface-variant">
+                    <span className="font-bold text-on-surface">{ratio}%</span>
+                    Online
+                </div>
+            </div>
+            <div className="mt-5 flex w-full gap-1.5">
+                {devices.length > 0 ? (
+                    devices.map((device) => (
                         <div
-                            key={i}
-                            className={`h-1.5 flex-1 rounded-full ${
-                                d.status === 1 // 1 = online
-                                    ? "bg-secondary" // xanh
-                                    : "bg-tertiary-container" // đỏ nhạt
+                            key={device.deviceId}
+                            className={`h-2 flex-1 rounded-full ${
+                                device.status === 1
+                                    ? "bg-secondary"
+                                    : "bg-error-container"
                             }`}
                         />
-                    ))}
-                </div>
+                    ))
+                ) : (
+                    <div className="h-2 flex-1 rounded-full bg-surface-container" />
+                )}
             </div>
-            {/* Background icon decoration */}
-            <div className="absolute -right-4 -bottom-4 opacity-5">
-                <span className="material-symbols-outlined text-9xl">hub</span>
-            </div>
-        </div>
+        </section>
     );
 }

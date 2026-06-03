@@ -1,6 +1,12 @@
 import * as signalR from "@microsoft/signalr";
+import { SIGNALR_URL } from "../config/env";
 
 let connection = null;
+const logSignalR = (...args) => {
+    if (import.meta.env.DEV) {
+        console.info(...args);
+    }
+};
 
 export const startSignalR = async () => {
     // đã tạo rồi thì dùng lại
@@ -17,25 +23,25 @@ export const startSignalR = async () => {
     }
 
     connection = new signalR.HubConnectionBuilder()
-        .withUrl("http://localhost:5000/sensorHub")
+        .withUrl(SIGNALR_URL)
         .withAutomaticReconnect()
         .build();
 
     connection.onreconnecting(() => {
-        console.log("SignalR reconnecting...");
+        logSignalR("SignalR reconnecting...");
     });
 
     connection.onreconnected(() => {
-        console.log("SignalR reconnected");
+        logSignalR("SignalR reconnected");
     });
 
     connection.onclose(() => {
-        console.log("SignalR disconnected");
+        logSignalR("SignalR disconnected");
     });
 
     await connection.start();
 
-    console.log("SignalR connected");
+    logSignalR("SignalR connected");
 
     return connection;
 };
@@ -53,7 +59,6 @@ export const getConnection = () => connection;
 export const onSignalR = (eventName, callback) => {
     if (!connection) return;
 
-    connection.off(eventName);
     connection.on(eventName, callback);
 };
 

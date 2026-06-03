@@ -1,8 +1,8 @@
 import axios from "axios";
-import { logout } from "../services/authService";
+import { API_BASE_URL } from "../config/env";
 
 const api = axios.create({
-    baseURL: "http://localhost:5000/api",
+    baseURL: API_BASE_URL,
 });
 
 api.interceptors.request.use((config) => {
@@ -17,7 +17,9 @@ api.interceptors.response.use(
     (response) => response,
     (error) => {
         if (error.response?.status === 401) {
-            logout();
+            localStorage.removeItem("accessToken");
+            localStorage.removeItem("refreshToken");
+            localStorage.removeItem("user");
             window.location.href = "/login";
         }
         return Promise.reject(error);

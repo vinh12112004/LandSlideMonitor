@@ -1,238 +1,207 @@
-import { useEffect, useState, useCallback } from "react";
-import sensordataService from "../services/sensordataService";
-import DataStatusBadge from "../components/alerts/DataStatusBadge";
 import AlertsTable from "../components/alerts/AlertsTable";
 import Pagination from "../components/common/Pagination";
-const LIMIT = 10;
+import Button from "../components/ui/Button";
+import Card from "../components/ui/Card";
+import EmptyState from "../components/ui/EmptyState";
+import Input from "../components/ui/Input";
+import LoadingState from "../components/ui/LoadingState";
+import { ALERTS_LIMIT, useAlerts } from "../features/alerts/useAlerts";
 
-// Thống kê nhanh ở đầu trang
-function StatCard({ icon, label, value, colorClass, bgClass }) {
+function StatCard({ icon, label, value, tone = "primary" }) {
+    const toneClass = {
+        primary: "bg-primary-container/25 text-primary",
+        warning: "bg-amber-50 text-amber-700",
+        danger: "bg-red-50 text-red-700",
+    }[tone];
+
     return (
-        <div
-            className={`rounded-2xl border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-800/50 px-5 py-4 flex items-center gap-4 shadow-sm`}
-        >
-            <div
-                className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${bgClass}`}
-            >
-                <span
-                    className={`material-symbols-outlined ${colorClass}`}
-                    style={{ fontSize: 22 }}
+        <Card className="px-5 py-4">
+            <div className="flex items-center gap-4">
+                <div
+                    className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-lg ${toneClass}`}
                 >
-                    {icon}
-                </span>
+                    <span
+                        className="material-symbols-outlined text-[22px]"
+                        aria-hidden="true"
+                    >
+                        {icon}
+                    </span>
+                </div>
+                <div>
+                    <p className="text-2xl font-extrabold leading-none tabular-nums text-on-surface">
+                        {value ?? "—"}
+                    </p>
+                    <p className="mt-1 text-xs text-on-surface-variant">
+                        {label}
+                    </p>
+                </div>
             </div>
-            <div>
-                <p className="text-2xl font-extrabold text-slate-800 dark:text-slate-100 tabular-nums leading-none">
-                    {value ?? "—"}
-                </p>
-                <p className="text-xs text-slate-400 mt-0.5">{label}</p>
-            </div>
-        </div>
+        </Card>
     );
 }
 
 export default function AlertsPage() {
-    const [data, setData] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
+    const {
+        data,
+        rows,
+        filters,
+        appliedFilters,
+        loading,
+        error,
+        stats,
+        setFilter,
+        search,
+        reset,
+        setPage,
+        refetch,
+    } = useAlerts();
 
-    // Bộ lọc
-    const [deviceId, setDeviceId] = useState("");
-    const [dateFrom, setDateFrom] = useState("");
-    const [dateTo, setDateTo] = useState("");
-    const [page, setPage] = useState(1);
+    const hasActiveFilters =
+        appliedFilters.deviceId ||
+        appliedFilters.dateFrom ||
+        appliedFilters.dateTo;
 
-    // Bộ lọc tạm thời (chỉ áp dụng khi nhấn "Tìm kiếm")
-    const [appliedFilters, setAppliedFilters] = useState({
-        deviceId: "",
-        dateFrom: "",
-        dateTo: "",
-        page: 1,
-    });
-
-    const fetchAlerts = useCallback(async () => {
-        setLoading(true);
-        setError(null);
-        try {
-            const result = await sensordataService.getAlerts({
-                deviceId: appliedFilters.deviceId,
-                dateFrom: appliedFilters.dateFrom,
-                dateTo: appliedFilters.dateTo,
-                page: appliedFilters.page,
-                limit: LIMIT,
-            });
-            setData(result);
-        } catch (err) {
-            setError("Không thể tải dữ liệu cảnh báo. Vui lòng thử lại.");
-        } finally {
-            setLoading(false);
-        }
-    }, [appliedFilters]);
-
-    useEffect(() => {
-        fetchAlerts();
-    }, [fetchAlerts]);
-
-    const handleSearch = () => {
-        setAppliedFilters({ deviceId, dateFrom, dateTo, page: 1 });
-        setPage(1);
+    const handleKeyDown = (event) => {
+        if (event.key === "Enter") search();
     };
 
-    const handleReset = () => {
-        setDeviceId("");
-        setDateFrom("");
-        setDateTo("");
-        setPage(1);
-        setAppliedFilters({ deviceId: "", dateFrom: "", dateTo: "", page: 1 });
-    };
+    if (loading && !data) {
+        return (
+            <section className="page-shell">
+                <LoadingState message="Đang tải cảnh báo..." />
+            </section>
+        );
+    }
 
-    const handlePageChange = (newPage) => {
-        setPage(newPage);
-        setAppliedFilters((prev) => ({ ...prev, page: newPage }));
-    };
-
-    const handleKeyDown = (e) => {
-        if (e.key === "Enter") handleSearch();
-    };
-
-    // Đếm theo status
-    const warningCount = data?.data?.filter((d) => d.status === 1).length ?? 0;
-    const alertCount = data?.data?.filter((d) => d.status === 2).length ?? 0;
+    if (error && !data) {
+        return (
+            <section className="page-shell">
+                <EmptyState
+                    icon="error_outline"
+                    title="Không thể tải cảnh báo"
+                    description={error}
+                    actionLabel="Thử lại"
+                    onAction={refetch}
+                />
+            </section>
+        );
+    }
 
     return (
-        <main className="ml-64 p-8 bg-slate-50 dark:bg-slate-950 min-h-screen">
-            {/* Header */}
-            <div className="mb-7">
-                <div className="flex items-center gap-3 mb-1">
-                    <span
-                        className="material-symbols-outlined text-red-500"
-                        style={{ fontSize: 28 }}
-                    >
-                        crisis_alert
-                    </span>
-                    <h1 className="text-2xl font-extrabold text-slate-800 dark:text-slate-100 tracking-tight">
-                        Cảnh báo
-                    </h1>
-                </div>
-                <p className="text-sm text-slate-400 ml-10">
+        <section className="page-shell">
+            <div className="mb-8">
+                <p className="mb-2 text-xs font-bold uppercase tracking-widest text-error">
+                    Alert Center
+                </p>
+                <h1 className="text-3xl font-extrabold tracking-tight text-on-surface md:text-4xl">
+                    Cảnh báo
+                </h1>
+                <p className="mt-2 max-w-2xl text-sm text-on-surface-variant">
                     Danh sách các bản ghi dữ liệu cảm biến vượt ngưỡng an toàn.
                 </p>
             </div>
 
-            {/* Stat Cards */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-7">
-                <StatCard
-                    icon="list_alt"
-                    label="Tổng bản ghi"
-                    value={data?.totalCount}
-                    colorClass="text-blue-600"
-                    bgClass="bg-blue-50 dark:bg-blue-900/30"
-                />
+            {error && (
+                <div
+                    className="mb-5 rounded-lg border border-error/20 bg-error-container/25 px-4 py-3 text-sm font-medium text-on-error-container"
+                    role="alert"
+                >
+                    {error}
+                </div>
+            )}
+
+            <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
+                <StatCard icon="list_alt" label="Tổng bản ghi" value={stats.total} />
                 <StatCard
                     icon="warning"
                     label="Cảnh báo (trang này)"
-                    value={warningCount}
-                    colorClass="text-amber-600"
-                    bgClass="bg-amber-50 dark:bg-amber-900/30"
+                    value={stats.warning}
+                    tone="warning"
                 />
                 <StatCard
                     icon="crisis_alert"
                     label="Báo động (trang này)"
-                    value={alertCount}
-                    colorClass="text-red-600"
-                    bgClass="bg-red-50 dark:bg-red-900/30"
+                    value={stats.alert}
+                    tone="danger"
                 />
             </div>
 
-            {/* Filter Bar */}
-            <div className="bg-white dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-700 px-5 py-4 mb-5 shadow-sm">
-                <p className="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-3">
+            <Card className="mb-6 px-5 py-4">
+                <p className="mb-3 text-xs font-bold uppercase tracking-widest text-on-surface-variant">
                     Bộ lọc
                 </p>
-                <div className="flex flex-wrap gap-3 items-end">
-                    <div className="flex flex-col gap-1">
-                        <label className="text-xs text-slate-500 font-medium">
-                            Thiết bị
-                        </label>
-                        <input
-                            type="text"
-                            value={deviceId}
-                            onChange={(e) => setDeviceId(e.target.value)}
-                            onKeyDown={handleKeyDown}
-                            placeholder="VD: ESP32_HN_01"
-                            className="h-9 px-3 rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 text-sm text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 w-44 placeholder-slate-300"
-                        />
-                    </div>
-                    <div className="flex flex-col gap-1">
-                        <label className="text-xs text-slate-500 font-medium">
-                            Từ ngày
-                        </label>
-                        <input
-                            type="datetime-local"
-                            value={dateFrom}
-                            onChange={(e) => setDateFrom(e.target.value)}
-                            className="h-9 px-3 rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 text-sm text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                    </div>
-                    <div className="flex flex-col gap-1">
-                        <label className="text-xs text-slate-500 font-medium">
-                            Đến ngày
-                        </label>
-                        <input
-                            type="datetime-local"
-                            value={dateTo}
-                            onChange={(e) => setDateTo(e.target.value)}
-                            className="h-9 px-3 rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 text-sm text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                    </div>
-                    <button
-                        onClick={handleSearch}
-                        className="h-9 px-5 rounded-xl bg-blue-600 hover:bg-blue-700 active:scale-95 text-white text-sm font-semibold flex items-center gap-2 transition-all shadow-sm"
-                    >
-                        <span
-                            className="material-symbols-outlined"
-                            style={{ fontSize: 16 }}
-                        >
-                            search
-                        </span>
-                        Tìm kiếm
-                    </button>
-                    {(appliedFilters.deviceId ||
-                        appliedFilters.dateFrom ||
-                        appliedFilters.dateTo) && (
-                        <button
-                            onClick={handleReset}
-                            className="h-9 px-4 rounded-xl border border-slate-200 dark:border-slate-600 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700 text-sm font-medium flex items-center gap-1.5 transition-colors"
-                        >
+                <div className="grid grid-cols-1 gap-3 md:grid-cols-[minmax(0,1fr)_auto_auto] lg:grid-cols-[220px_220px_220px_auto_auto]">
+                    <Input
+                        label="Thiết bị"
+                        value={filters.deviceId}
+                        onChange={(event) =>
+                            setFilter("deviceId", event.target.value)
+                        }
+                        onKeyDown={handleKeyDown}
+                        placeholder="VD: ESP32_HN_01"
+                        icon="memory"
+                    />
+                    <Input
+                        label="Từ ngày"
+                        type="datetime-local"
+                        value={filters.dateFrom}
+                        onChange={(event) =>
+                            setFilter("dateFrom", event.target.value)
+                        }
+                    />
+                    <Input
+                        label="Đến ngày"
+                        type="datetime-local"
+                        value={filters.dateTo}
+                        onChange={(event) =>
+                            setFilter("dateTo", event.target.value)
+                        }
+                    />
+                    <div className="flex items-end">
+                        <Button onClick={search} className="w-full">
                             <span
-                                className="material-symbols-outlined"
-                                style={{ fontSize: 15 }}
+                                className="material-symbols-outlined text-[18px]"
+                                aria-hidden="true"
                             >
-                                close
+                                search
                             </span>
-                            Xoá lọc
-                        </button>
+                            Tìm kiếm
+                        </Button>
+                    </div>
+                    {hasActiveFilters && (
+                        <div className="flex items-end">
+                            <Button
+                                variant="outline"
+                                onClick={reset}
+                                className="w-full"
+                            >
+                                <span
+                                    className="material-symbols-outlined text-[18px]"
+                                    aria-hidden="true"
+                                >
+                                    close
+                                </span>
+                                Xóa lọc
+                            </Button>
+                        </div>
                     )}
                 </div>
-            </div>
+            </Card>
 
-            {/* Table */}
-            <div className="bg-surface-container-lowest rounded-3xl overflow-hidden shadow-sm border border-outline-variant/10">
-                <AlertsTable
-                    alerts={data?.data ?? []}
-                    loading={loading}
-                    indexOffset={(appliedFilters.page - 1) * LIMIT}
+            <AlertsTable
+                alerts={rows}
+                loading={loading}
+                indexOffset={(appliedFilters.page - 1) * ALERTS_LIMIT}
+            />
+            {data && (
+                <Pagination
+                    currentPage={data.currentPage}
+                    totalPages={data.totalPages}
+                    onPageChange={setPage}
+                    pageSize={ALERTS_LIMIT}
+                    total={data.totalCount}
                 />
-                {data && (
-                    <Pagination
-                        currentPage={data.currentPage}
-                        totalPages={data.totalPages}
-                        onPageChange={handlePageChange}
-                        pageSize={LIMIT}
-                        total={data.totalCount}
-                    />
-                )}
-            </div>
-        </main>
+            )}
+        </section>
     );
 }

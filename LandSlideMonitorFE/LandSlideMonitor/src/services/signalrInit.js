@@ -1,16 +1,21 @@
-import { startSignalR } from "./signalr";
+import { getConnection, startSignalR } from "./signalr";
 
 let started = false;
+const logSignalR = (...args) => {
+    if (import.meta.env.DEV) {
+        console.info(...args);
+    }
+};
 
 export const initSignalR = async () => {
-    if (started) return;
+    if (started && getConnection()) return;
 
     try {
         await startSignalR();
 
         started = true;
 
-        console.log("SignalR initialized globally");
+        logSignalR("SignalR initialized globally");
     } catch (err) {
         console.error("SignalR init failed", err);
 

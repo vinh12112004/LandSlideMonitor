@@ -5,7 +5,7 @@ export default function Pagination({
     pageSize,
     onPageChange,
 }) {
-    const from = (currentPage - 1) * pageSize + 1;
+    const from = total === 0 ? 0 : (currentPage - 1) * pageSize + 1;
     const to = Math.min(currentPage * pageSize, total);
 
     const getPages = () => {
@@ -29,7 +29,7 @@ export default function Pagination({
     };
 
     return (
-        <div className="px-6 py-4 bg-surface-container-low/30 border-t border-outline-variant/15 flex items-center justify-between">
+        <div className="flex flex-col gap-3 border-x border-b border-outline-variant/25 bg-surface-container-low/30 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
             <p className="text-xs text-on-surface-variant font-medium">
                 Hiển thị{" "}
                 <span className="text-on-surface">
@@ -43,9 +43,11 @@ export default function Pagination({
             </p>
             <div className="flex items-center gap-1">
                 <button
+                    type="button"
                     onClick={() => onPageChange(currentPage - 1)}
                     disabled={currentPage === 1}
-                    className="p-2 text-outline-variant hover:text-primary disabled:opacity-30"
+                    className="rounded-lg p-2 text-outline hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 disabled:opacity-30"
+                    aria-label="Trang trước"
                 >
                     <span className="material-symbols-outlined">
                         chevron_left
@@ -62,8 +64,12 @@ export default function Pagination({
                         </span>
                     ) : (
                         <button
+                            type="button"
                             key={page}
                             onClick={() => onPageChange(page)}
+                            aria-current={
+                                page === currentPage ? "page" : undefined
+                            }
                             className={`w-8 h-8 flex items-center justify-center rounded-lg text-xs font-medium transition-colors ${
                                 page === currentPage
                                     ? "bg-primary text-white font-bold shadow-md shadow-primary/20"
@@ -76,9 +82,11 @@ export default function Pagination({
                 )}
 
                 <button
+                    type="button"
                     onClick={() => onPageChange(currentPage + 1)}
                     disabled={currentPage === totalPages}
-                    className="p-2 text-on-surface hover:text-primary disabled:opacity-30"
+                    className="rounded-lg p-2 text-outline hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 disabled:opacity-30"
+                    aria-label="Trang sau"
                 >
                     <span className="material-symbols-outlined">
                         chevron_right

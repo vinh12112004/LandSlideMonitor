@@ -1,4 +1,8 @@
 import { useState } from "react";
+import Button from "../ui/Button";
+import Input from "../ui/Input";
+import Modal from "../ui/Modal";
+import Select from "../ui/Select";
 
 export default function ThresholdModal({
     editing,
@@ -45,96 +49,81 @@ export default function ThresholdModal({
         !Number.isNaN(parseFloat(form.thresholdValue));
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-            <div className="bg-white rounded-3xl p-8 w-full max-w-md shadow-2xl">
-                <h3 className="text-xl font-extrabold mb-6">
-                    {isEdit ? "Chỉnh sửa ngưỡng" : "Thêm ngưỡng mới"}
-                </h3>
-
-                <form onSubmit={handleSubmit} className="space-y-4">
-                    <div>
-                        <label className="text-xs font-bold block mb-1">
-                            Kênh
-                        </label>
-                        <select
-                            name="channelDefinitionId"
-                            value={form.channelDefinitionId}
-                            onChange={handleChange}
-                            className="w-full border rounded-xl px-4 py-2.5 text-sm bg-white"
-                            disabled={isEdit}
-                        >
-                            {channelDefinitions.map((t) => (
-                                <option key={t.id} value={t.id}>
-                                    {t.name} ({t.dataKey})
-                                </option>
-                            ))}
-                        </select>
-                    </div>
-
-                    <div>
-                        <label className="text-xs font-bold block mb-1">
-                            Giá trị ngưỡng
-                        </label>
-                        <input
-                            name="thresholdValue"
-                            type="number"
-                            value={form.thresholdValue}
-                            onChange={handleChange}
-                            className="w-full border rounded-xl px-4 py-2.5 text-sm"
-                            required
-                        />
-                    </div>
-
-                    <div>
-                        <label className="text-xs font-bold block mb-1">
-                            Mức
-                        </label>
-                        <select
-                            name="level"
-                            value={form.level}
-                            onChange={handleChange}
-                            className="w-full border rounded-xl px-4 py-2.5 text-sm bg-white"
-                        >
-                            {levels.map((t) => (
-                                <option key={t.value} value={t.value}>
-                                    {t.label}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
-
-                    <div>
-                        <label className="text-xs font-bold block mb-1">
-                            Ghi chú
-                        </label>
-                        <textarea
-                            name="note"
-                            value={form.note}
-                            onChange={handleChange}
-                            className="w-full border rounded-xl px-4 py-2.5 text-sm"
-                            rows={3}
-                        />
-                    </div>
-
-                    <div className="flex gap-3 pt-4">
-                        <button
-                            type="button"
-                            onClick={onClose}
-                            disabled={submitting}
-                            className="flex-1 py-3 border rounded-xl text-sm font-bold"
-                        >
-                            Hủy
-                        </button>
-                        <button
-                            type="submit"
-                            disabled={submitting || !isValid}
-                            className="flex-1 py-3 bg-primary text-white rounded-xl text-sm font-bold"
-                        >
-                            {submitting ? "Đang lưu..." : "Lưu ngưỡng"}
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
+        <Modal
+            title={isEdit ? "Chỉnh sửa ngưỡng" : "Thêm ngưỡng mới"}
+            description="Thiết lập giá trị ngưỡng theo kênh dữ liệu và mức cảnh báo."
+            onClose={onClose}
+            footer={
+                <>
+                    <Button
+                        variant="outline"
+                        onClick={onClose}
+                        disabled={submitting}
+                    >
+                        Hủy
+                    </Button>
+                    <Button
+                        type="submit"
+                        form="threshold-form"
+                        disabled={!isValid}
+                        isLoading={submitting}
+                    >
+                        Lưu ngưỡng
+                    </Button>
+                </>
+            }
+        >
+            <form
+                id="threshold-form"
+                onSubmit={handleSubmit}
+                className="space-y-4"
+            >
+                <Select
+                    label="Kênh"
+                    name="channelDefinitionId"
+                    value={form.channelDefinitionId}
+                    onChange={handleChange}
+                    disabled={isEdit}
+                >
+                    {channelDefinitions.map((t) => (
+                        <option key={t.id} value={t.id}>
+                            {t.name} ({t.dataKey})
+                        </option>
+                    ))}
+                </Select>
+                <Input
+                    label="Giá trị ngưỡng"
+                    name="thresholdValue"
+                    type="number"
+                    value={form.thresholdValue}
+                    onChange={handleChange}
+                    required
+                />
+                <Select
+                    label="Mức"
+                    name="level"
+                    value={form.level}
+                    onChange={handleChange}
+                >
+                    {levels.map((t) => (
+                        <option key={t.value} value={t.value}>
+                            {t.label}
+                        </option>
+                    ))}
+                </Select>
+                <div className="space-y-1.5">
+                    <label className="block text-xs font-semibold text-on-surface-variant">
+                        Ghi chú
+                    </label>
+                    <textarea
+                        name="note"
+                        value={form.note}
+                        onChange={handleChange}
+                        className="w-full rounded-lg border border-outline-variant/70 bg-surface-container-lowest px-3 py-2.5 text-sm text-on-surface transition focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                        rows={3}
+                    />
+                </div>
+            </form>
+        </Modal>
     );
 }

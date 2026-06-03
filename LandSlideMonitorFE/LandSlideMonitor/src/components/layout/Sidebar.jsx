@@ -1,48 +1,67 @@
-import { useNavigate, useLocation } from "react-router-dom";
-import { logout } from "../../services/authService";
+import { useLocation, useNavigate } from "react-router-dom";
+import Button from "../ui/Button";
+import { cn } from "../../utils/cn";
 
-// Sidebar — thanh điều hướng bên trái
-export default function Sidebar({ onLogout, user }) {
+const NAV_ITEMS = [
+    { path: "/map", label: "Bản đồ", icon: "map" },
+    { path: "/alerts", label: "Cảnh báo", icon: "warning" },
+    { path: "/devices", label: "Thiết bị", icon: "devices" },
+    { path: "/users", label: "Người dùng", icon: "group", adminOnly: true },
+    { path: "/thresholds", label: "Cấu hình", icon: "tune" },
+];
+
+export default function Sidebar({ onLogout, user, isOpen = false, onClose }) {
     const navigate = useNavigate();
     const location = useLocation();
 
-    const NAV_ITEMS = [
-        // { path: "/monitoring", label: "Giám sát", icon: "monitoring" },
-        { path: "/map", label: "Bản đồ", icon: "map" },
-        { path: "/alerts", label: "Cảnh báo", icon: "warning" },
-        { path: "/devices", label: "Thiết bị", icon: "devices" },
-        { path: "/users", label: "Người dùng", icon: "group" },
-        { path: "/thresholds", label: "Cấu hình", icon: "tune" },
-    ];
-
     const handleLogout = async () => {
-        await logout();
-        onLogout();
+        await onLogout?.();
         navigate("/login");
     };
 
-    return (
-        <aside className="flex flex-col fixed left-0 top-0 h-screen w-64 bg-slate-50 dark:bg-slate-900 text-sm font-medium tracking-tight border-r border-outline-variant/30">
-            <div className="px-6 py-8 flex flex-col flex-grow">
-                {/* Logo */}
-                <div className="flex items-center gap-3 mb-10">
-                    <div>
-                        <h1 className="font-headline font-extrabold text-blue-600 tracking-tighter text-lg leading-none">
+    const handleNavigate = (path) => {
+        navigate(path);
+        onClose?.();
+    };
+
+    const sidebar = (
+        <aside
+            className="flex h-full w-72 flex-col border-r border-outline-variant/30 bg-surface-container-lowest text-sm shadow-sm"
+            aria-label="Điều hướng chính"
+        >
+            <div className="flex flex-1 flex-col px-5 py-6">
+                <div className="mb-8 flex items-center justify-between gap-3">
+                    <button
+                        type="button"
+                        onClick={() => handleNavigate("/devices")}
+                        className="min-w-0 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+                    >
+                        <p className="truncate font-headline text-lg font-extrabold tracking-tight text-primary">
                             Giám sát sạt lở
-                        </h1>
-                        <p className="text-[10px] text-on-surface-variant/70 uppercase tracking-widest mt-1">
+                        </p>
+                        <p className="mt-1 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/70">
                             Digital Geologist
                         </p>
-                    </div>
+                    </button>
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        className="lg:hidden"
+                        onClick={onClose}
+                        aria-label="Đóng điều hướng"
+                    >
+                        <span
+                            className="material-symbols-outlined text-[20px]"
+                            aria-hidden="true"
+                        >
+                            close
+                        </span>
+                    </Button>
                 </div>
 
-                {/* Navigation */}
-                <nav className="space-y-1 flex-grow">
+                <nav className="flex-1 space-y-1">
                     {NAV_ITEMS.map((item) => {
-                        if (item.path === "/users" && user?.role !== "Admin") {
-                            return null;
-                        }
-
+                        if (item.adminOnly && user?.role !== "Admin") return null;
                         const isActive = location.pathname.startsWith(
                             item.path,
                         );
@@ -50,33 +69,38 @@ export default function Sidebar({ onLogout, user }) {
                         return (
                             <button
                                 key={item.path}
-                                onClick={() => navigate(item.path)}
-                                className={`w-full flex items-center gap-3 px-4 py-3 transition-colors rounded-xl text-left ${
+                                type="button"
+                                onClick={() => handleNavigate(item.path)}
+                                aria-current={isActive ? "page" : undefined}
+                                className={cn(
+                                    "flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30",
                                     isActive
-                                        ? "text-blue-700 dark:text-blue-300 font-bold bg-slate-200/50"
-                                        : "text-slate-500 hover:bg-slate-200/50"
-                                }`}
+                                        ? "bg-primary-container/25 font-bold text-primary"
+                                        : "text-on-surface-variant hover:bg-surface-container hover:text-on-surface",
+                                )}
                             >
-                                <span className="material-symbols-outlined">
+                                <span
+                                    className="material-symbols-outlined text-[20px]"
+                                    aria-hidden="true"
+                                >
                                     {item.icon}
                                 </span>
-                                <span>{item.label}</span>
+                                <span className="truncate">{item.label}</span>
                             </button>
                         );
                     })}
                 </nav>
 
-                {/* User Info & Logout */}
-                <div className="mt-auto pt-6 border-t border-outline-variant/20">
+                <div className="mt-6 border-t border-outline-variant/25 pt-5">
                     {user && (
-                        <div className="flex items-center gap-3 mb-4 px-2">
-                            <div className="w-9 h-9 rounded-full bg-primary-container flex items-center justify-center">
-                                <span className="font-bold text-on-primary-container">
-                                    {user.username.charAt(0).toUpperCase()}
+                        <div className="mb-4 flex min-w-0 items-center gap-3 rounded-lg bg-surface-container-low px-3 py-3">
+                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary-container">
+                                <span className="text-sm font-bold text-on-primary-container">
+                                    {user.username?.charAt(0).toUpperCase()}
                                 </span>
                             </div>
-                            <div>
-                                <p className="font-bold text-on-surface text-sm">
+                            <div className="min-w-0">
+                                <p className="truncate text-sm font-bold text-on-surface">
                                     {user.username}
                                 </p>
                                 <p className="text-xs text-on-surface-variant">
@@ -86,10 +110,14 @@ export default function Sidebar({ onLogout, user }) {
                         </div>
                     )}
                     <button
+                        type="button"
                         onClick={handleLogout}
-                        className="w-full flex items-center gap-3 px-4 py-3 transition-colors rounded-xl text-left text-slate-500 hover:bg-red-100/50 hover:text-red-600"
+                        className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-on-surface-variant transition hover:bg-error-container/35 hover:text-error focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-error/25"
                     >
-                        <span className="material-symbols-outlined">
+                        <span
+                            className="material-symbols-outlined text-[20px]"
+                            aria-hidden="true"
+                        >
                             logout
                         </span>
                         <span>Đăng xuất</span>
@@ -97,5 +125,24 @@ export default function Sidebar({ onLogout, user }) {
                 </div>
             </div>
         </aside>
+    );
+
+    return (
+        <>
+            <div className="fixed inset-y-0 left-0 z-40 hidden lg:block">
+                {sidebar}
+            </div>
+            {isOpen && (
+                <div className="fixed inset-0 z-50 lg:hidden">
+                    <button
+                        type="button"
+                        className="absolute inset-0 bg-on-surface/45"
+                        aria-label="Đóng điều hướng"
+                        onClick={onClose}
+                    />
+                    <div className="relative h-full">{sidebar}</div>
+                </div>
+            )}
+        </>
     );
 }

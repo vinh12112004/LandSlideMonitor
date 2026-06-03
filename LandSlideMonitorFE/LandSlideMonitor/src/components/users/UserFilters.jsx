@@ -1,5 +1,3 @@
-import React from "react";
-
 const ROLE_OPTIONS = [
     { value: "all", label: "Tất cả vai trò" },
     { value: "Admin", label: "Admin" },
@@ -13,7 +11,7 @@ export default function UserFilters({ filters, onFilterChange, provinces }) {
     };
 
     return (
-        <div className="mb-6 p-4 bg-surface-container-low rounded-2xl">
+        <div className="rounded-lg border border-outline-variant/30 bg-surface-container-lowest p-4 shadow-sm">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {/* Search by Username */}
                 <div>

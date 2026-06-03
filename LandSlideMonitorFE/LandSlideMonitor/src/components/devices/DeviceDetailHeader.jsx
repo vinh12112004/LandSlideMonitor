@@ -4,7 +4,9 @@ export default function DeviceDetailHeader({ device, formatTime, onBack }) {
     return (
         <div className="flex items-center gap-3 mb-6">
             <button
+                type="button"
                 onClick={onBack}
+                aria-label="Quay lại danh sách thiết bị"
                 className="flex items-center justify-center w-9 h-9 rounded-lg border border-outline-variant/70 text-on-surface-variant hover:text-on-surface hover:border-outline-variant transition"
             >
                 <span className="material-symbols-outlined text-[18px]">

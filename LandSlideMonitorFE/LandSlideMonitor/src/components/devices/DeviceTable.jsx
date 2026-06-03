@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import DataTable from "../ui/DataTable";
 import StatusBadge from "../ui/StatusBadge";
@@ -12,11 +13,11 @@ export default function DeviceTable({
 }) {
     const navigate = useNavigate();
 
-    const columns = [
+    const columns = useMemo(() => [
         {
             key: "name",
             label: "Tên thiết bị",
-            render: (value, row) => (
+            render: (value) => (
                 <div className="flex items-center gap-3">
                     <div className="w-9 h-9 rounded-xl bg-surface-container flex items-center justify-center shrink-0">
                         <span className="material-symbols-outlined text-on-surface-variant text-[18px]">
@@ -85,7 +86,7 @@ export default function DeviceTable({
                         <button
                             onClick={(e) => {
                                 e.stopPropagation();
-                                onDelete(row.deviceId);
+                                onDelete(row);
                             }}
                             disabled={isDeleting}
                             className="p-2 rounded-lg text-on-surface-variant hover:text-tertiary hover:bg-tertiary/5 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
@@ -117,7 +118,7 @@ export default function DeviceTable({
                 );
             },
         },
-    ];
+    ], [deletingId, navigate, onDelete, onEdit]);
 
     return (
         <DataTable
