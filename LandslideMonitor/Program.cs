@@ -107,6 +107,7 @@ builder.Services.AddScoped<ISensorRepository, SensorRepository>();
 builder.Services.AddScoped<IThresholdRepository, ThresholdRepository>();
 builder.Services.AddScoped<IChannelDefinitionRepository, ChannelDefinitionRepository>();
 builder.Services.AddScoped<IChannelDefinitionService, ChannelDefinitionService>();
+builder.Services.AddScoped<IDashboardService, DashboardService>();
 
 var app = builder.Build();
 app.UseMiddleware<ExceptionMiddleware>();
