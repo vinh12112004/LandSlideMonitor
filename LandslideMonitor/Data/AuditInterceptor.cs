@@ -57,19 +57,29 @@ public class AuditInterceptor : SaveChangesInterceptor
             {
                 // CREATE
                 case EntityState.Added:
+                {
+                    var newValues = new Dictionary<string, object?>();
+                    foreach (var prop in entry.Properties)
+                    {
+                        // Bỏ qua Khóa chính (Primary Key) không đưa vào JSON
+                        if (prop.Metadata.IsPrimaryKey())
+                            continue;
+
+                        newValues[prop.Metadata.Name] = prop.CurrentValue;
+                    }
+
                     logs.Add(new AuditLog
                     {
                         Id = Guid.NewGuid(),
                         UserId = _auditContext.UserId,
                         ActionType = "CREATE",
                         EntityType = entry.Entity.GetType().Name,
-                        NewValues = JsonSerializer.Serialize(
-                            entry.CurrentValues.ToObject()
-                        ),
+                        NewValues = JsonSerializer.Serialize(newValues),
                         Description = GenerateDescription(entry),
                         CreatedAt = DateTime.UtcNow
                     });
                     break;
+                }
 
                 // UPDATE
                 case EntityState.Modified:
@@ -79,6 +89,15 @@ public class AuditInterceptor : SaveChangesInterceptor
 
                     foreach (var prop in entry.Properties)
                     {
+                        // BẮT BUỘC LƯU PRIMARY KEY DÙ KHÔNG BỊ MODIFIED
+                        if (prop.Metadata.IsPrimaryKey())
+                        {
+                            oldValues[prop.Metadata.Name] = prop.OriginalValue;
+                            newValues[prop.Metadata.Name] = prop.CurrentValue;
+                            continue;
+                        }
+
+                        // Chỉ lưu các trường có sự thay đổi
                         if (!prop.IsModified)
                             continue;
 
@@ -102,19 +121,25 @@ public class AuditInterceptor : SaveChangesInterceptor
 
                 // DELETE
                 case EntityState.Deleted:
+                {
+                    var oldValues = new Dictionary<string, object?>();
+                    foreach (var prop in entry.Properties)
+                    {
+                        oldValues[prop.Metadata.Name] = prop.OriginalValue;
+                    }
+
                     logs.Add(new AuditLog
                     {
                         Id = Guid.NewGuid(),
                         UserId = _auditContext.UserId,
                         ActionType = "DELETE",
                         EntityType = entry.Entity.GetType().Name,
-                        OldValues = JsonSerializer.Serialize(
-                            entry.OriginalValues.ToObject()
-                        ),
+                        OldValues = JsonSerializer.Serialize(oldValues),
                         Description = GenerateDescription(entry),
                         CreatedAt = DateTime.UtcNow
                     });
                     break;
+                }
             }
         }
 

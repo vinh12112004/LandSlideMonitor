@@ -1,6 +1,6 @@
 namespace LandslideMonitor.Models;
 
-public class ChannelDefinition
+public class ChannelDefinition : IAuditable
 {
     public int Id { get; set; }
     public string Name { get; set; }  
