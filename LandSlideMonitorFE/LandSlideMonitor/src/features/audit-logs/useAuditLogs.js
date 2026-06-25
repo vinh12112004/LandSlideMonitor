@@ -3,6 +3,15 @@ import auditLogService from "../../services/auditLogService";
 
 export const AUDIT_LOGS_LIMIT = 10;
 
+const DEFAULT_FILTERS = {
+    actionType: "",
+    dateFrom: "",
+    dateTo: "",
+    id: "",
+    page: 1,
+    userId: "",
+};
+
 const createArrayResult = (rows) => ({
     data: rows,
     currentPage: 1,
@@ -14,9 +23,10 @@ const createArrayResult = (rows) => ({
 
 export function useAuditLogs() {
     const [data, setData] = useState(null);
-    const [page, setPage] = useState(1);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [filters, setFilters] = useState(DEFAULT_FILTERS);
+    const [appliedFilters, setAppliedFilters] = useState(DEFAULT_FILTERS);
 
     const fetchAuditLogs = useCallback(async () => {
         try {
@@ -24,8 +34,13 @@ export function useAuditLogs() {
             setError(null);
 
             const result = await auditLogService.getAll({
-                page,
+                actionType: appliedFilters.actionType,
+                dateFrom: appliedFilters.dateFrom,
+                dateTo: appliedFilters.dateTo,
+                id: appliedFilters.id,
+                page: appliedFilters.page,
                 limit: AUDIT_LOGS_LIMIT,
+                userId: appliedFilters.userId,
             });
 
             setData(Array.isArray(result) ? createArrayResult(result) : result);
@@ -35,7 +50,7 @@ export function useAuditLogs() {
         } finally {
             setLoading(false);
         }
-    }, [page]);
+    }, [appliedFilters]);
 
     useEffect(() => {
         fetchAuditLogs();
@@ -43,21 +58,43 @@ export function useAuditLogs() {
 
     const pagination = useMemo(
         () => ({
-            currentPage: data?.currentPage ?? page,
+            currentPage: data?.currentPage ?? appliedFilters.page,
             totalPages: data?.totalPages ?? 1,
             pageSize: data?.pageSize ?? AUDIT_LOGS_LIMIT,
             totalCount: data?.totalCount ?? 0,
         }),
-        [data, page],
+        [appliedFilters.page, data],
     );
+
+    const setFilter = useCallback((name, value) => {
+        setFilters((prev) => ({ ...prev, [name]: value }));
+    }, []);
+
+    const search = useCallback(() => {
+        setAppliedFilters({ ...filters, page: 1 });
+    }, [filters]);
+
+    const reset = useCallback(() => {
+        setFilters(DEFAULT_FILTERS);
+        setAppliedFilters(DEFAULT_FILTERS);
+    }, []);
+
+    const setPage = useCallback((page) => {
+        setAppliedFilters((prev) => ({ ...prev, page }));
+    }, []);
 
     return {
         data,
         rows: data?.data || [],
+        filters,
+        appliedFilters,
         loading,
         error,
         pagination,
         isPaged: !data?.isArrayResponse,
+        setFilter,
+        search,
+        reset,
         setPage,
         refetch: fetchAuditLogs,
     };
