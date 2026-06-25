@@ -1,6 +1,7 @@
-using System.Security.Claims;
 
 namespace LandslideMonitor.Data;
+
+using System.Security.Claims;
 
 public class AuditContext : IAuditContext
 {
@@ -11,9 +12,10 @@ public class AuditContext : IAuditContext
         _http = http;
     }
 
-
     public string? UserId =>
-        _http.HttpContext?.User?.FindFirst("sub")?.Value
-        ?? _http.HttpContext?.User?
+        _http.HttpContext?.User?
             .FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+    public bool ShouldAudit =>
+        _http.HttpContext != null;
 }

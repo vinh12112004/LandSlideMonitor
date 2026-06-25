@@ -1,6 +1,7 @@
 using System.Text.Json;
 using LandslideMonitor.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 
 namespace LandslideMonitor.Data;
@@ -19,51 +20,133 @@ public class AuditInterceptor : SaveChangesInterceptor
         InterceptionResult<int> result,
         CancellationToken cancellationToken = default)
     {
+        // Không audit nếu request không có user (MQTT service, BackgroundService...)
+        if (!_auditContext.ShouldAudit)
+        {
+            return await base.SavingChangesAsync(
+                eventData,
+                result,
+                cancellationToken
+            );
+        }
+
         var context = eventData.Context;
 
         if (context == null)
-            return await base.SavingChangesAsync(eventData, result, cancellationToken);
+        {
+            return await base.SavingChangesAsync(
+                eventData,
+                result,
+                cancellationToken
+            );
+        }
 
         var logs = new List<AuditLog>();
 
         foreach (var entry in context.ChangeTracker.Entries())
         {
+            // tránh loop vô hạn
             if (entry.Entity is AuditLog)
                 continue;
 
+            // chỉ entity cần audit
             if (entry.Entity is not IAuditable)
                 continue;
 
-            if (entry.State == EntityState.Modified)
+            switch (entry.State)
             {
-                var oldValues = new Dictionary<string, object?>();
-                var newValues = new Dictionary<string, object?>();
-
-                foreach (var prop in entry.Properties)
-                {
-                    if (prop.IsModified)
+                // CREATE
+                case EntityState.Added:
+                    logs.Add(new AuditLog
                     {
+                        Id = Guid.NewGuid(),
+                        UserId = _auditContext.UserId,
+                        ActionType = "CREATE",
+                        EntityType = entry.Entity.GetType().Name,
+                        NewValues = JsonSerializer.Serialize(
+                            entry.CurrentValues.ToObject()
+                        ),
+                        Description = GenerateDescription(entry),
+                        CreatedAt = DateTime.UtcNow
+                    });
+                    break;
+
+                // UPDATE
+                case EntityState.Modified:
+                {
+                    var oldValues = new Dictionary<string, object?>();
+                    var newValues = new Dictionary<string, object?>();
+
+                    foreach (var prop in entry.Properties)
+                    {
+                        if (!prop.IsModified)
+                            continue;
+
                         oldValues[prop.Metadata.Name] = prop.OriginalValue;
                         newValues[prop.Metadata.Name] = prop.CurrentValue;
                     }
+
+                    logs.Add(new AuditLog
+                    {
+                        Id = Guid.NewGuid(),
+                        UserId = _auditContext.UserId,
+                        ActionType = "UPDATE",
+                        EntityType = entry.Entity.GetType().Name,
+                        OldValues = JsonSerializer.Serialize(oldValues),
+                        NewValues = JsonSerializer.Serialize(newValues),
+                        Description = GenerateDescription(entry),
+                        CreatedAt = DateTime.UtcNow
+                    });
+                    break;
                 }
 
-                logs.Add(new AuditLog
-                {
-                    Id = Guid.NewGuid(),
-                    ActionType = "UPDATE",
-                    EntityType = entry.Entity.GetType().Name,
-                    OldValues = JsonSerializer.Serialize(oldValues),
-                    NewValues = JsonSerializer.Serialize(newValues),
-                    UserId = _auditContext.UserId,
-                    CreatedAt = DateTime.UtcNow
-                });
+                // DELETE
+                case EntityState.Deleted:
+                    logs.Add(new AuditLog
+                    {
+                        Id = Guid.NewGuid(),
+                        UserId = _auditContext.UserId,
+                        ActionType = "DELETE",
+                        EntityType = entry.Entity.GetType().Name,
+                        OldValues = JsonSerializer.Serialize(
+                            entry.OriginalValues.ToObject()
+                        ),
+                        Description = GenerateDescription(entry),
+                        CreatedAt = DateTime.UtcNow
+                    });
+                    break;
             }
         }
 
+        // thêm log vào cùng transaction
         if (logs.Any())
+        {
             context.Set<AuditLog>().AddRange(logs);
+        }
 
-        return await base.SavingChangesAsync(eventData, result, cancellationToken);
+        return await base.SavingChangesAsync(
+            eventData,
+            result,
+            cancellationToken
+        );
+    }
+
+    private string GenerateDescription(EntityEntry entry)
+    {
+        var entityName = entry.Entity.GetType().Name;
+
+        return entry.State switch
+        {
+            EntityState.Added =>
+                $"Created new {entityName}",
+
+            EntityState.Deleted =>
+                $"Deleted {entityName}",
+
+            EntityState.Modified =>
+                $"Updated {entityName}",
+
+            _ => $"{entry.State} {entityName}"
+        };
     }
 }

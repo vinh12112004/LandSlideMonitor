@@ -139,6 +139,11 @@ export default function ThresholdsPage() {
     const thresholdColumns = useMemo(
         () => [
             {
+                key: "id",
+                label: "ID",
+                className: "w-16 font-mono text-xs text-on-surface-variant",
+            },
+            {
                 key: "channelName",
                 label: "Kênh",
                 className: "font-semibold text-on-surface",
@@ -203,6 +208,11 @@ export default function ThresholdsPage() {
 
     const channelColumns = useMemo(
         () => [
+            {
+                key: "id",
+                label: "ID",
+                className: "w-16 font-mono text-xs text-on-surface-variant",
+            },
             {
                 key: "name",
                 label: "Tên",

@@ -8,6 +8,12 @@ const NAV_ITEMS = [
     { path: "/alerts", label: "Cảnh báo", icon: "warning" },
     { path: "/devices", label: "Thiết bị", icon: "devices" },
     { path: "/users", label: "Người dùng", icon: "group", adminOnly: true },
+    {
+        path: "/audit-logs",
+        label: "Nhật ký hệ thống",
+        icon: "history",
+        adminOnly: true,
+    },
     { path: "/thresholds", label: "Cấu hình", icon: "tune" },
 ];
 

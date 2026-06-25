@@ -7,6 +7,7 @@ import { initSignalR } from "../services/signalrInit";
 import { stopSignalR } from "../services/signalr";
 
 const AlertsPage = lazy(() => import("../pages/AlertsPage"));
+const AuditLogsPage = lazy(() => import("../pages/AuditLogsPage"));
 const DevicesPage = lazy(() => import("../pages/DevicesPage"));
 const DeviceDetailPage = lazy(() => import("../pages/DeviceDetailPage"));
 const LoginPage = lazy(() => import("../pages/LoginPage"));
@@ -102,6 +103,14 @@ export default function App() {
                         element={withPageSuspense(
                             <RequireAdmin user={currentUser}>
                                 <UsersPage />
+                            </RequireAdmin>,
+                        )}
+                    />
+                    <Route
+                        path="/audit-logs"
+                        element={withPageSuspense(
+                            <RequireAdmin user={currentUser}>
+                                <AuditLogsPage />
                             </RequireAdmin>,
                         )}
                     />
