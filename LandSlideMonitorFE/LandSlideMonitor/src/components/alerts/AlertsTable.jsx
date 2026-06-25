@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import DataTable from "../ui/DataTable";
 import DataStatusBadge from "./DataStatusBadge";
 import { SENSOR_LABELS } from "../../constants/sensorConfig";
+import { resolveDataStatus } from "../../utils/dataStatus";
 
 function SensorDetailRow({ jsonData }) {
     const parsed = (() => {
@@ -153,8 +154,9 @@ export default function AlertsTable({ alerts, loading, indexOffset = 0 }) {
     );
 
     const rowClassName = (row) => {
-        if (row.status === 2) return "bg-error/[.03] hover:bg-error/[.06]";
-        if (row.status === 1) return "bg-amber-500/[.03] hover:bg-amber-500/[.06]";
+        const status = resolveDataStatus(row.status);
+        if (status === 2) return "bg-error/[.03] hover:bg-error/[.06]";
+        if (status === 1) return "bg-amber-500/[.03] hover:bg-amber-500/[.06]";
         return "";
     };
 

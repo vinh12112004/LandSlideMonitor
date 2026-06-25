@@ -1,6 +1,6 @@
 namespace LandslideMonitor.Models;
 
-public class SensorChannel
+public class SensorChannel : IAuditable
 {
     public int Id { get; set; }
     public int SensorId { get; set; }

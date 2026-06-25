@@ -8,7 +8,7 @@ public enum DeviceStatus
     Maintenance =3,
 }
 
-public class Device
+public class Device : IAuditable
 {
     public string DeviceId { get; set; }
     public string Name { get; set; }

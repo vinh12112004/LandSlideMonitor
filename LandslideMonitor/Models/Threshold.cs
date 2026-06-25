@@ -1,6 +1,6 @@
 namespace LandslideMonitor.Models;
 
-public class Threshold
+public class Threshold : IAuditable
 {
     public int Id { get; set; }
     public int channelDefinitionid { get; set; }

@@ -1,33 +1,15 @@
+import {
+    DATA_STATUS_BADGE_CONFIG,
+    resolveDataStatus,
+} from "../../utils/dataStatus";
+
 /**
  * DataStatusBadge — hiển thị mức độ cảnh báo của dữ liệu cảm biến.
  * status: 0 = Normal, 1 = Warning, 2 = Alert
  * Khác với StatusBadge (trạng thái thiết bị: online/offline/...)
  */
-const STATUS_CONFIG = {
-    0: {
-        label: "Bình thường",
-        icon: "check_circle",
-        className: "bg-emerald-50 text-emerald-700 ring-emerald-200",
-        dotClass: "bg-emerald-500",
-    },
-    1: {
-        label: "Cảnh báo",
-        icon: "warning",
-        className: "bg-amber-50 text-amber-700 ring-amber-200",
-        dotClass: "bg-amber-500",
-        pulse: true,
-    },
-    2: {
-        label: "Báo động",
-        icon: "crisis_alert",
-        className: "bg-red-50 text-red-700 ring-red-200",
-        dotClass: "bg-red-500",
-        pulse: true,
-    },
-};
-
 export default function DataStatusBadge({ status, showIcon = true }) {
-    const cfg = STATUS_CONFIG[status] ?? STATUS_CONFIG[0];
+    const cfg = DATA_STATUS_BADGE_CONFIG[resolveDataStatus(status)];
 
     return (
         <span
@@ -57,5 +39,3 @@ export default function DataStatusBadge({ status, showIcon = true }) {
         </span>
     );
 }
-
-export { STATUS_CONFIG };

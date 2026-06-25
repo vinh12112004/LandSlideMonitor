@@ -16,12 +16,14 @@ public class AppDbContext : DbContext
     public DbSet<ChannelDefinition> SensorTypes { get; set; }
     public DbSet<ChannelDefinition> ChannelDefinitions { get; set; }
     public DbSet<SensorChannel> SensorChannels { get; set; }
+    public DbSet<AuditLog> AuditLogs { get; set; }
 
     public AppDbContext(DbContextOptions<AppDbContext> options)
         : base(options)
     {
         
     }
+    
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<SensorData>()

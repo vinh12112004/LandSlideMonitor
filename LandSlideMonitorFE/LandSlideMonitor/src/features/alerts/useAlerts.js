@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import sensordataService from "../../services/sensordataService";
 
 export const ALERTS_LIMIT = 10;
@@ -58,15 +58,6 @@ export function useAlerts() {
         setAppliedFilters((prev) => ({ ...prev, page }));
     }, []);
 
-    const stats = useMemo(() => {
-        const rows = data?.data || [];
-        return {
-            total: data?.totalCount,
-            warning: rows.filter((row) => row.status === 1).length,
-            alert: rows.filter((row) => row.status === 2).length,
-        };
-    }, [data]);
-
     return {
         data,
         rows: data?.data || [],
@@ -74,7 +65,6 @@ export function useAlerts() {
         appliedFilters,
         loading,
         error,
-        stats,
         setFilter,
         search,
         reset,

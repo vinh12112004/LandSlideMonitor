@@ -151,7 +151,10 @@ export function useDevices(user) {
                 setSubmitting(true);
                 setMutationError(null);
                 if (editingDevice) {
-                    await deviceService.update(editingDevice.deviceId, deviceData);
+                    await deviceService.update(
+                        editingDevice.deviceId,
+                        deviceData,
+                    );
                 } else {
                     await deviceService.create(deviceData);
                 }

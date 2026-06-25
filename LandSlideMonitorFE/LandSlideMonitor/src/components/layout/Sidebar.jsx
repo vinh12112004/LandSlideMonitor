@@ -3,6 +3,7 @@ import Button from "../ui/Button";
 import { cn } from "../../utils/cn";
 
 const NAV_ITEMS = [
+    { path: "/monitoring", label: "Giám sát", icon: "monitoring" },
     { path: "/map", label: "Bản đồ", icon: "map" },
     { path: "/alerts", label: "Cảnh báo", icon: "warning" },
     { path: "/devices", label: "Thiết bị", icon: "devices" },

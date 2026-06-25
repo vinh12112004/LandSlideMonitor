@@ -1,6 +1,6 @@
 namespace LandslideMonitor.Models;
 
-public class UserProvince
+public class UserProvince : IAuditable
 {
     public int UserId { get; set; }
     public User User { get; set; }

@@ -103,7 +103,7 @@ public class DashboardService : IDashboardService
                     Timestamp = sd.Timestamp
                 }
             )
-            .Take(10)
+            .Take(5)
             .ToListAsync();
         var scopeName = await GetScopeNameAsync(role, provinceIds);
         return new DashboardSummaryDto

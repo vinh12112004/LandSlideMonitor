@@ -7,39 +7,6 @@ import Input from "../components/ui/Input";
 import LoadingState from "../components/ui/LoadingState";
 import { ALERTS_LIMIT, useAlerts } from "../features/alerts/useAlerts";
 
-function StatCard({ icon, label, value, tone = "primary" }) {
-    const toneClass = {
-        primary: "bg-primary-container/25 text-primary",
-        warning: "bg-amber-50 text-amber-700",
-        danger: "bg-red-50 text-red-700",
-    }[tone];
-
-    return (
-        <Card className="px-5 py-4">
-            <div className="flex items-center gap-4">
-                <div
-                    className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-lg ${toneClass}`}
-                >
-                    <span
-                        className="material-symbols-outlined text-[22px]"
-                        aria-hidden="true"
-                    >
-                        {icon}
-                    </span>
-                </div>
-                <div>
-                    <p className="text-2xl font-extrabold leading-none tabular-nums text-on-surface">
-                        {value ?? "—"}
-                    </p>
-                    <p className="mt-1 text-xs text-on-surface-variant">
-                        {label}
-                    </p>
-                </div>
-            </div>
-        </Card>
-    );
-}
-
 export default function AlertsPage() {
     const {
         data,
@@ -48,7 +15,6 @@ export default function AlertsPage() {
         appliedFilters,
         loading,
         error,
-        stats,
         setFilter,
         search,
         reset,
@@ -109,22 +75,6 @@ export default function AlertsPage() {
                     {error}
                 </div>
             )}
-
-            <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
-                <StatCard icon="list_alt" label="Tổng bản ghi" value={stats.total} />
-                <StatCard
-                    icon="warning"
-                    label="Cảnh báo (trang này)"
-                    value={stats.warning}
-                    tone="warning"
-                />
-                <StatCard
-                    icon="crisis_alert"
-                    label="Báo động (trang này)"
-                    value={stats.alert}
-                    tone="danger"
-                />
-            </div>
 
             <Card className="mb-6 px-5 py-4">
                 <p className="mb-3 text-xs font-bold uppercase tracking-widest text-on-surface-variant">

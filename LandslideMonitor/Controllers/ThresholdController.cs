@@ -3,6 +3,7 @@ using LandslideMonitor.DTOs;
 using LandslideMonitor.Helpers;
 using LandslideMonitor.Models;
 using LandslideMonitor.Repositories.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
 
@@ -10,6 +11,7 @@ namespace LandslideMonitor.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class ThresholdController : ControllerBase
 {
     private readonly IThresholdRepository _thresholdRepository;

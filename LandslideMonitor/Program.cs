@@ -79,8 +79,18 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 // DB
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("Default")));
+builder.Services.AddDbContext<AppDbContext>((sp, options) =>
+{
+    var auditContext = sp.GetRequiredService<IAuditContext>();
+
+    options.UseSqlServer(
+        builder.Configuration.GetConnectionString("Default")
+    );
+
+    options.AddInterceptors(
+        new AuditInterceptor(auditContext)
+    );
+});
 // Automapper
 builder.Services.AddAutoMapper(typeof(MappingProfile));
 // MQTT worker
@@ -108,6 +118,8 @@ builder.Services.AddScoped<IThresholdRepository, ThresholdRepository>();
 builder.Services.AddScoped<IChannelDefinitionRepository, ChannelDefinitionRepository>();
 builder.Services.AddScoped<IChannelDefinitionService, ChannelDefinitionService>();
 builder.Services.AddScoped<IDashboardService, DashboardService>();
+builder.Services.AddScoped<IAuditContext, AuditContext>();
+// builder.Services.AddScoped<AuditInterceptor>();
 
 var app = builder.Build();
 app.UseMiddleware<ExceptionMiddleware>();

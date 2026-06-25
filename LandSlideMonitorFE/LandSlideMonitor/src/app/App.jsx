@@ -11,6 +11,7 @@ const DevicesPage = lazy(() => import("../pages/DevicesPage"));
 const DeviceDetailPage = lazy(() => import("../pages/DeviceDetailPage"));
 const LoginPage = lazy(() => import("../pages/LoginPage"));
 const MapViewPage = lazy(() => import("../pages/MapViewPage"));
+const MonitoringPage = lazy(() => import("../pages/MonitoringPage"));
 const ThresholdsPage = lazy(() => import("../pages/ThresholdsPage"));
 const UsersPage = lazy(() => import("../pages/UsersPage"));
 
@@ -25,27 +26,6 @@ function withPageSuspense(element) {
         >
             {element}
         </Suspense>
-    );
-}
-
-function PlaceholderPage({ title }) {
-    return (
-        <section className="flex min-h-[calc(100vh-4rem)] items-center justify-center px-4 py-10">
-            <div className="text-center">
-                <span
-                    className="material-symbols-outlined mb-4 block text-6xl text-outline"
-                    aria-hidden="true"
-                >
-                    construction
-                </span>
-                <h1 className="text-2xl font-extrabold text-on-surface">
-                    {title}
-                </h1>
-                <p className="mt-2 text-sm text-on-surface-variant">
-                    Trang này đang được phát triển.
-                </p>
-            </div>
-        </section>
     );
 }
 
@@ -101,7 +81,7 @@ export default function App() {
                 >
                     <Route
                         path="/monitoring"
-                        element={<PlaceholderPage title="Giám sát" />}
+                        element={withPageSuspense(<MonitoringPage />)}
                     />
                     <Route
                         path="/map"
