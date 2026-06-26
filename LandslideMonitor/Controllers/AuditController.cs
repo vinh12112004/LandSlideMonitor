@@ -32,7 +32,7 @@ public class AuditController : ControllerBase
             query = query.Where(x => x.CreatedAt <= filterParams.To.Value);
         }
 
-        if (!string.IsNullOrWhiteSpace(filterParams.UserId))
+        if (filterParams.UserId.HasValue)
         {
             query = query.Where(x => x.UserId == filterParams.UserId);
         }
@@ -60,7 +60,7 @@ public class AuditLogFilterParams : PaginationParams
 
     public DateTime? To { get; set; }
 
-    public string? UserId { get; set; }
+    public int? UserId { get; set; }
 
     public string? ActionType { get; set; }
 

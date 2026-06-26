@@ -28,9 +28,26 @@ public class MqttService : BackgroundService
         var client = factory.CreateMqttClient();
 
         var options = new MqttClientOptionsBuilder()
-            .WithTcpServer("localhost", 1883)
+            .WithTcpServer("mqtt", 1883)
+            .WithCleanSession()
             .Build();
-
+        client.DisconnectedAsync += async e =>
+        {
+            Console.WriteLine("MQTT bị ngắt kết nối. Đang chờ 5 giây để thử lại...");
+            await Task.Delay(TimeSpan.FromSeconds(5), stoppingToken);
+        
+            try
+            {
+                if (!client.IsConnected)
+                {
+                    await client.ConnectAsync(options, stoppingToken);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Lỗi kết nối lại: {ex.Message}");
+            }
+        };
         client.ApplicationMessageReceivedAsync += async e =>
         {
             try
@@ -101,10 +118,21 @@ public class MqttService : BackgroundService
             }
         };
 
-        await client.ConnectAsync(options, stoppingToken);
-        await client.SubscribeAsync("landslide/+/data");
-
-        Console.WriteLine("MQTT Connected!");
+        while (!stoppingToken.IsCancellationRequested)
+        {
+            try
+            {
+                await client.ConnectAsync(options, stoppingToken);
+                await client.SubscribeAsync("landslide/+/data");
+                Console.WriteLine("Kết nối MQTT tới broker 'mqtt' thành công!");
+                break; // Thoát vòng lặp khi kết nối thành công
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Không thể kết nối broker: {ex.Message}. Đang thử lại...");
+                await Task.Delay(5000, stoppingToken);
+            }
+        }
 
         await Task.Delay(Timeout.Infinite, stoppingToken);
     }

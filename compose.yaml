@@ -1,22 +1,38 @@
 ﻿services:
-  landslidemonitor:
-    image: landslidemonitor
-    build:
-      context: .
-      dockerfile: LandslideMonitor/Dockerfile
+    landslidemonitor:
+        build:
+            context: .
+            dockerfile: LandslideMonitor/Dockerfile
+        container_name: api
+        ports:
+            - "8080:8080"
+        depends_on:
+            sqlserver:
+                condition: service_started
+            mqtt:
+                condition: service_started
 
-  mqtt:
-    image: eclipse-mosquitto
-    container_name: mqtt
-    ports:
-      - "1883:1883"
-      - "9001:9001"
+    mqtt:
+        image: eclipse-mosquitto
+        container_name: mqtt
+        ports:
+            - "1883:1883"
+            - "9001:9001"
+        volumes:
+            - ./mosquitto/config:/mosquitto/config
+            - ./mosquitto/data:/mosquitto/data
+            - ./mosquitto/log:/mosquitto/log
 
-  sqlserver:
-    image: mcr.microsoft.com/mssql/server:2022-latest
-    container_name: sqlserverlandslide
-    environment:
-      - ACCEPT_EULA=Y
-      - SA_PASSWORD=Nguyenthanh2k4$
-    ports:
-      - "1433:1433"
+    sqlserver:
+        image: mcr.microsoft.com/mssql/server:2022-latest
+        container_name: sqlserverlandslide
+        environment:
+            - ACCEPT_EULA=Y
+            - SA_PASSWORD=Nguyenthanh2k4$
+        ports:
+            - "1433:1433"
+        volumes:
+            - sql_data:/var/opt/mssql
+
+volumes:
+    sql_data:

@@ -12,9 +12,14 @@ public class AuditContext : IAuditContext
         _http = http;
     }
 
-    public string? UserId =>
-        _http.HttpContext?.User?
-            .FindFirst(ClaimTypes.NameIdentifier)?.Value;
+    public int? UserId =>
+        int.TryParse(
+            _http.HttpContext?.User?
+                .FindFirst(ClaimTypes.NameIdentifier)?.Value,
+            out var id
+        )
+            ? id
+            : null;
 
     public bool ShouldAudit =>
         _http.HttpContext != null;

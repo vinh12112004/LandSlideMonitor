@@ -84,7 +84,8 @@ builder.Services.AddDbContext<AppDbContext>((sp, options) =>
     var auditContext = sp.GetRequiredService<IAuditContext>();
 
     options.UseSqlServer(
-        builder.Configuration.GetConnectionString("Default")
+        builder.Configuration.GetConnectionString("Default"),
+        sql => sql.EnableRetryOnFailure()
     );
 
     options.AddInterceptors(
@@ -133,18 +134,34 @@ if (app.Environment.IsDevelopment())
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-
-    if (!context.Users.Any())
+    
+    try 
     {
-        var admin = new User
-        {
-            Username = "admin",
-            PasswordHash = BCrypt.Net.BCrypt.HashPassword("123456"),
-            Role = "Admin"
-        };
+        Console.WriteLine("Đang chạy Migration...");
+        context.Database.Migrate(); 
+        Console.WriteLine("Migration xong. Đang kiểm tra dữ liệu Admin...");
 
-        context.Users.Add(admin);
-        context.SaveChanges();
+        if (!context.Users.Any())
+        {
+            var admin = new User
+            {
+                Username = "admin",
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword("123456"),
+                Role = "Admin"
+            };
+
+            context.Users.Add(admin);
+            context.SaveChanges();
+            Console.WriteLine("Tạo tài khoản Admin thành công!");
+        }
+    }
+    catch (Exception ex)
+    {
+        // Ép in ra lỗi chi tiết trước khi app bị sập
+        Console.WriteLine("=== LỖI NGHIÊM TRỌNG KHI KHỞI ĐỘNG ===");
+        Console.WriteLine(ex.Message);
+        Console.WriteLine(ex.StackTrace);
+        throw; 
     }
 }
 app.UseSwagger();
