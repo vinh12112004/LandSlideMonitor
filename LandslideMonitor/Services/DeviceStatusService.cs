@@ -3,13 +3,14 @@ using LandslideMonitor.Hubs;
 using LandslideMonitor.Models;
 using LandslideMonitor.Services.Interfaces;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.EntityFrameworkCore;
 
 namespace LandslideMonitor.Services;
 
 public class DeviceStatusService : BackgroundService
 {
     private readonly IServiceScopeFactory _scopeFactory;
-    private IHubContext<SensorHub> _hub;
+    private readonly IHubContext<SensorHub> _hub;
 
     public DeviceStatusService(IServiceScopeFactory scopeFactory, IHubContext<SensorHub> hub)
     {
@@ -22,30 +23,40 @@ public class DeviceStatusService : BackgroundService
         while (!stoppingToken.IsCancellationRequested)
         {
             using var scope = _scopeFactory.CreateScope();
-            var deviceService = scope.ServiceProvider.GetRequiredService<IDeviceService>();
+            
+            // Thay vì dùng DeviceService gián tiếp, ta gọi thẳng DbContext 
+            // để dùng ExecuteUpdateAsync (tối ưu nhất, không bị lỗi Tracking)
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
             var now = DateTime.UtcNow;
+            var threshold = now.AddSeconds(-1800); // 30 phút không có tín hiệu
 
-            var threshold = now.AddSeconds(-1800);
-            var devices = await deviceService.GetOfflineCandidatesAsync(threshold);
+            // 1. Lấy danh sách ID các thiết bị Offline để bắn SignalR
+            var offlineDeviceIds = db.Devices
+                .Where(d => d.LastSeen < threshold && d.Status != DeviceStatus.Offline)
+                .Select(d => d.DeviceId)
+                .ToList();
 
-            foreach (var device in devices)
+            if (offlineDeviceIds.Any())
             {
-                await deviceService.UpdateStatusAsync(
-                    device.DeviceId,
-                    DeviceStatus.Offline,
-                    device.LastSeen,
-                    device.LastLatitude,
-                    device.LastLongitude
-                );
-                    
-                await _hub.Clients.All.SendAsync("DeviceStatusChanged", new
+                // 2. CẬP NHẬT TRẠNG THÁI: Chỉ update cột Status, tuyệt đối không đụng tới Lat/Lon
+                await db.Devices
+                    .Where(d => offlineDeviceIds.Contains(d.DeviceId))
+                    .ExecuteUpdateAsync(s => s.SetProperty(d => d.Status, DeviceStatus.Offline), stoppingToken);
+
+                // 3. Gửi thông báo WebSocket tới Client
+                foreach (var deviceId in offlineDeviceIds)
                 {
-                    device.DeviceId,
-                    device.Status,
-                    device.LastSeen
-                });
+                    await _hub.Clients.All.SendAsync("DeviceStatusChanged", new
+                    {
+                        DeviceId = deviceId,
+                        Status = DeviceStatus.Offline,
+                        LastSeen = threshold // Truyền thời gian ngắt kết nối cho UI
+                    }, stoppingToken);
+                }
             }
+
+            // Chờ 10 giây rồi quét tiếp
             await Task.Delay(10000, stoppingToken);
         }
     }

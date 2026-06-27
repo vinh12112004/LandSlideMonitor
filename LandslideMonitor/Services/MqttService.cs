@@ -76,20 +76,23 @@ public class MqttService : BackgroundService
                     Console.WriteLine("Device not found → ignore");
                     return;
                 }
-                double? lat = dto.Data.ContainsKey("lat") ? dto.Data["lat"] : null;
-                double? lon = dto.Data.ContainsKey("lon") ? dto.Data["lon"] : null;
                 var wasOffline = device.Status == DeviceStatus.Offline;
+
+                var saved = await sensorService.ProcessSensorDataAsync(dto);
+                if (saved == null) return;
+                
+                double? currentLat = dto.Data.ContainsKey("Lat") ? dto.Data["Lat"] : null;
+                double? currentLon = dto.Data.ContainsKey("Lon") ? dto.Data["Lon"] : null;
                 //  update device
                 var updatedDevice = await deviceService.UpdateStatusAsync(
                     dto.DeviceId,
                     DeviceStatus.Online,
                     dto.Timestamp,
-                    lat,
-                    lon
+                    currentLat,
+                    currentLon
                 );
                 
                 if (updatedDevice == null) return;
-                var saved = await sensorService.ProcessSensorDataAsync(dto);
 
                 await _hub.Clients.All.SendAsync("ReceiveSensorData", new
                 {
