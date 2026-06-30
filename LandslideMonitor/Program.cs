@@ -20,7 +20,19 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowFrontend",
         policy =>
         {
-            policy.WithOrigins("http://localhost:5173")
+            policy
+                .AllowAnyOrigin()
+                .AllowAnyHeader()
+                .AllowAnyMethod();
+        });
+});
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("cors",
+        policy =>
+        {
+            policy
+                .WithOrigins("https://land-slide-monitor.vercel.app")
                 .AllowAnyHeader()
                 .AllowAnyMethod()
                 .AllowCredentials();
@@ -124,8 +136,10 @@ builder.Services.AddScoped<IAuditContext, AuditContext>();
 
 var app = builder.Build();
 app.UseMiddleware<ExceptionMiddleware>();
-app.MapHub<SensorHub>("/sensorHub");
+app.MapHub<SensorHub>("/sensorHub")
+   .RequireCors("cors");
 app.UseCors("AllowFrontend");
+app.UseCors("cors");
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
